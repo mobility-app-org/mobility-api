@@ -1,5 +1,0 @@
-spring:
-  config:
-    import: classpath:application-dev.properties
-    activate:
-      on-profile: dev
