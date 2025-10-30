@@ -37,7 +37,9 @@ public class Dispatch {
 
     private Boolean active; // 활성화 여부 :: 임시저장 등에 사용
 
-    // TODO office_id : 사무실 id
+    // FIXME office_id : 사무실 id :: 외래키 설정 필요
+    private Long officeId;
+
     // TODO transporter_id : 기사 id
 
     private LocalDateTime createdAt; // 생성일자
