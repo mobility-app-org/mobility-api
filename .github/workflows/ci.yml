@@ -28,10 +28,10 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-#      - name: application-dev.properties 파일 주입
-#        run: |
-#          touch src/main/resources/application.properties
-#          echo "${{ secrets.APPLICATION_DEV_PROPERTIES }}" > src/main/resources/application.properties
+      - name: application-dev.properties 파일 주입
+        run: |
+          touch src/main/resources/application.properties
+          echo "${{ secrets.APPLICATION_DEV_PROPERTIES }}" > src/main/resources/application.properties
 
       - name: Gradle 권한 부여
         run: chmod +x ./gradlew
