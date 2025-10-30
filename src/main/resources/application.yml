@@ -1,9 +1,4 @@
 spring:
-  profiles:
-    active: dev
-
----
-spring:
   config:
     import: classpath:application-dev.properties
     activate:
