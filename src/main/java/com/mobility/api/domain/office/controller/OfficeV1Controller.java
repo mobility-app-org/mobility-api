@@ -2,11 +2,11 @@ package com.mobility.api.domain.office.controller;
 
 import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
+import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
 import com.mobility.api.domain.office.service.OfficeService;
+import com.mobility.api.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,15 +24,39 @@ public class OfficeV1Controller {
      * @return
      */
     @RequestMapping(path = "/dispatch-list", method = RequestMethod.GET)
-    public List<Dispatch> getAllDispatch() {
+    public ApiResponse<List<Dispatch>> getAllDispatch() {
         // FIXME 사무실, 정렬, 검색 등 조정 필요
-        return officeService.findAllDispatch();
+        return ApiResponse.success(officeService.findAllDispatch());
     }
 
+    /**
+     * <pre>
+     *     사무실 - 배차 등록
+     * </pre>
+     * @param createDispatchReq
+     */
     @RequestMapping(path = "/dispatch", method = RequestMethod.POST)
-    public void createDispatch(CreateDispatchReq createDispatchReq) {
-        // FIXME nullCheck 필요
-        officeService.saveDispatch(createDispatchReq);
+    public void createDispatch(
+            @RequestBody CreateDispatchReq createDispatchReq
+    ) {
+        officeService.saveDispatch(createDispatchReq); // FIXME 응답 수정
+    }
+
+    /**
+     * <pre>
+     *     사무실 - 배차 수정
+     * </pre>
+     * @param dispatchId
+     * @param updateDispatchReq
+     * @return
+     */
+    @RequestMapping(path = "/dispatch/{dispatch_id}", method = RequestMethod.PATCH)
+    public ApiResponse<Dispatch> updateDispatch(
+            @PathVariable("dispatch_id") Long dispatchId,
+            @RequestBody UpdateDispatchReq updateDispatchReq
+    ) {
+        officeService.updateDispatch(dispatchId, updateDispatchReq);
+        return ApiResponse.success(null); // FIXME return값 수정
     }
 
 }
