@@ -2,7 +2,7 @@ package com.mobility.api.domain.office.service;
 
 import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
-import com.mobility.api.domain.office.dto.req.CreateDispatchReq;
+import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

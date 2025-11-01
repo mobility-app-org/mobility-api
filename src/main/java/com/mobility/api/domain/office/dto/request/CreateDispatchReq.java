@@ -1,5 +1,4 @@
-package com.mobility.api.domain.office.dto.req;
-
+package com.mobility.api.domain.office.dto.request;
 
 import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.enums.CallType;
