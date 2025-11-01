@@ -1,7 +1,7 @@
 package com.mobility.api.domain.office.controller;
 
 import com.mobility.api.domain.dispatch.entity.Dispatch;
-import com.mobility.api.domain.office.dto.req.CreateDispatchReq;
+import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.service.OfficeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
