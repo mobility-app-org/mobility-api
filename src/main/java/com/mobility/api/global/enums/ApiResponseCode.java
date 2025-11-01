@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ResponseStatus {
+public enum ApiResponseCode {
 
     // success ===================
 
