@@ -1,6 +1,6 @@
 package com.mobility.api.global.response;
 
-import com.mobility.api.global.enums.ResponseStatus;
+import com.mobility.api.global.enums.ApiResponseCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -18,9 +18,9 @@ public class ApiResponse<T> {
         this.result = null;
     }
 
-    public ApiResponse(ResponseStatus responseStatus, T result) {
-        this.code = responseStatus.getCode();
-        this.message = responseStatus.getMessage();
+    public ApiResponse(ApiResponseCode apiResponseCode, T result) {
+        this.code = apiResponseCode.getCode();
+        this.message = apiResponseCode.getMessage();
         this.result = result;
     }
 
@@ -33,8 +33,12 @@ public class ApiResponse<T> {
      * @param <T>
      */
     public static <T> ApiResponse<T> success(T result) {
-        return new ApiResponse<>(ResponseStatus.SUCCESS, result);
+        return new ApiResponse<>(ApiResponseCode.SUCCESS, result);
     }
 
 
+    public static <T> ApiResponse<T> fail(ApiResponseCode status) {
+
+        return new ApiResponse<>(status, null);
+    }
 }
