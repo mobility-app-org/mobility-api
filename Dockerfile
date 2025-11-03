@@ -1,15 +1,28 @@
-# 1. 베이스 이미지 (Java 21 JRE)
-FROM eclipse-temurin:21-jre
+# -----------------------------------------------
+# 1단계: 빌드(Build) 환경 (JDK + Gradle)
+# -----------------------------------------------
+FROM eclipse-temurin:21-jdk AS builder
+WORKDIR /workspace
 
-# 2. 작업 디렉토리 설정
+# 소스코드 전체를 컨테이너로 복사
+COPY . .
+
+# gradlew 실행 권한 부여
+RUN chmod +x ./gradlew
+
+# ⚡️컨테이너 '안에서' bootJar 빌드를 실행
+RUN ./gradlew bootJar --no-daemon
+
+# -----------------------------------------------
+# 2단계: 실행(Run) 환경 (JRE)
+# -----------------------------------------------
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-# 3. 빌드된 JAR 파일 복사
-# build/libs/ 폴더에 있는 .jar 파일을 app.jar 라는 이름으로 복사합니다.
-COPY build/libs/*.jar app.jar
-
-# 4. Spring Boot 프로필 설정 (도커 환경용)
 ENV SPRING_PROFILES_ACTIVE=docker
 
-# 5. 컨테이너 시작 시 실행할 명령어
+# ⚡️'builder' 단계의 빌드 결과물(.jar)만 복사해옴
+COPY --from=builder /workspace/build/libs/*.jar app.jar
+
+# 컨테이너가 시작될 때 실행할 명령어
 ENTRYPOINT ["java", "-jar", "app.jar"]
