@@ -8,23 +8,26 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "transporters")
 @Getter
 @Setter
 @NoArgsConstructor // @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Table(name = "transporters")
 public class Transporter {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "transporter_id")
     private Long id;
 
-    @Column(length = 20)
+    @Column(name = "name", length = 20)
     private String name;
 
+    @Column(name = "phone")
     private String phone;
 
+    @Column(name = "is_auto_dispatch")
     private boolean isAutoDispatch;
 
     @CreationTimestamp

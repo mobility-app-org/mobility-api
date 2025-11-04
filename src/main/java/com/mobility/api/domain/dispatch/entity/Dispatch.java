@@ -3,6 +3,8 @@ package com.mobility.api.domain.dispatch.entity;
 import com.mobility.api.domain.dispatch.enums.CallType;
 import com.mobility.api.domain.dispatch.enums.ServiceType;
 import com.mobility.api.domain.dispatch.enums.StatusType;
+import com.mobility.api.domain.transporter.entity.Transporter;
+import com.mobility.api.global.exception.GlobalExceptionHandler;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Comment;
@@ -40,8 +42,23 @@ public class Dispatch {
     // FIXME office_id : 사무실 id :: 외래키 설정 필요
     private Long officeId;
 
-    // TODO transporter_id : 기사 id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "transporter_id")
+    private Transporter transporter;
 
     private LocalDateTime createdAt; // 생성일자
+
+    // 기사 배차 시
+    public void assignDispatch(Transporter transporter) {
+        // 1. 유효성 검증 : 이미 배차되어있는지 확인
+        if (this.status != StatusType.OPEN) {
+            // todo: GlobalException 예외처리 - 배차 불가능합니다. (OPEN 상태 아님)
+            System.out.println("Status is not open");
+        }
+
+         // 2. 상태 변경
+        this.transporter = transporter;
+        this.status = StatusType.ASSIGNED;
+    }
 
 }
