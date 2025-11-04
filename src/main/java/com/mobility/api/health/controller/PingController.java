@@ -1,6 +1,7 @@
 package com.mobility.api.health.controller;
 
 import com.mobility.api.global.response.ApiResponse;
+import com.mobility.api.global.response.CommonResponse;
 import com.mobility.api.health.entity.Sample;
 import com.mobility.api.health.service.SampleService;
 import lombok.RequiredArgsConstructor;
@@ -17,13 +18,15 @@ public class PingController {
     private final SampleService sampleService;
 
     @RequestMapping(path = "/ping", method = RequestMethod.GET)
-    public ApiResponse<String> ping() {
-        return ApiResponse.success("pong");
+    public CommonResponse<String> ping() {
+        return CommonResponse.success("pong");
+//        return ApiResponse.success("pong");
     }
 
     @RequestMapping(path = "/ping-db", method = RequestMethod.GET)
-    public ApiResponse<List<Sample>> pingDb() {
-        return ApiResponse.success(sampleService.findAll());
+    public CommonResponse<List<Sample>> pingDb() {
+        return CommonResponse.success(sampleService.findAll());
+//        return ApiResponse.success(sampleService.findAll());
     }
 
 }
