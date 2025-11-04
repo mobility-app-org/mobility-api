@@ -19,7 +19,7 @@ public class CommonResponse<T> {
     /**
      * 실제 응답 데이터
      */
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) // null 또는 빈 객체일 경우 제외
+    @JsonInclude(JsonInclude.Include.NON_NULL) // null 객체일 경우 제외
     private T data;
 
     /**
