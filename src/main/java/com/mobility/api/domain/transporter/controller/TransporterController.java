@@ -2,14 +2,11 @@ package com.mobility.api.domain.transporter.controller;
 
 import com.mobility.api.domain.dispatch.service.DispatcherService;
 import com.mobility.api.domain.transporter.entity.Transporter;
-import com.mobility.api.domain.transporter.service.TransporterService;
 import com.mobility.api.global.annotation.CurrentUser;
 import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.CommonResponse;
 import com.mobility.api.global.response.ResultCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,7 +17,7 @@ public class TransporterController {
     private final DispatcherService dispatcherService;
 
     @PatchMapping("/dispatch-assign/{dispatch_id}")
-    public CommonResponse<ResultCode> assignDispatch(@PathVariable Long dispatch_id, @CurrentUser Transporter transporter) { 
+    public CommonResponse<ResultCode> assignDispatch(@PathVariable Long dispatch_id, @CurrentUser Transporter transporter) {
 
         Long transporterId = transporter.getId();
 
