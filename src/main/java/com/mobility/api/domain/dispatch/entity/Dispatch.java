@@ -4,7 +4,9 @@ import com.mobility.api.domain.dispatch.enums.CallType;
 import com.mobility.api.domain.dispatch.enums.ServiceType;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.transporter.entity.Transporter;
+import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.exception.GlobalExceptionHandler;
+import com.mobility.api.global.response.ResultCode;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Comment;
@@ -50,13 +52,12 @@ public class Dispatch {
 
     // 기사 배차 시
     public void assignDispatch(Transporter transporter) {
+
         // 1. 유효성 검증 : 이미 배차되어있는지 확인
         if (this.status != StatusType.OPEN) {
-            // todo: GlobalException 예외처리 - 배차 불가능합니다. (OPEN 상태 아님)
-            System.out.println("Status is not open");
+            throw new GlobalException(ResultCode.FORBIDDEN);
         }
 
-         // 2. 상태 변경
         this.transporter = transporter;
         this.status = StatusType.ASSIGNED;
     }
