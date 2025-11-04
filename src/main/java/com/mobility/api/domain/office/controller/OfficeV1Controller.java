@@ -5,6 +5,7 @@ import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
 import com.mobility.api.domain.office.service.OfficeService;
 import com.mobility.api.global.response.ApiResponse;
+import com.mobility.api.global.response.CommonResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,9 +25,9 @@ public class OfficeV1Controller {
      * @return
      */
     @RequestMapping(path = "/dispatch-list", method = RequestMethod.GET)
-    public ApiResponse<List<Dispatch>> getAllDispatch() {
+    public CommonResponse<List<Dispatch>> getAllDispatch() {
         // FIXME 사무실, 정렬, 검색 등 조정 필요
-        return ApiResponse.success(officeService.findAllDispatch());
+        return CommonResponse.success(officeService.findAllDispatch());
     }
 
     /**
@@ -36,10 +37,11 @@ public class OfficeV1Controller {
      * @param createDispatchReq
      */
     @RequestMapping(path = "/dispatch", method = RequestMethod.POST)
-    public void createDispatch(
+    public CommonResponse<Object> createDispatch(
             @RequestBody CreateDispatchReq createDispatchReq
     ) {
-        officeService.saveDispatch(createDispatchReq); // FIXME 응답 수정
+        officeService.saveDispatch(createDispatchReq);
+        return CommonResponse.success(null); // FIXME 응답 수정
     }
 
     /**
@@ -51,12 +53,20 @@ public class OfficeV1Controller {
      * @return
      */
     @RequestMapping(path = "/dispatch/{dispatch_id}", method = RequestMethod.PATCH)
-    public ApiResponse<Dispatch> updateDispatch(
+    public CommonResponse<Dispatch> updateDispatch(
             @PathVariable("dispatch_id") Long dispatchId,
             @RequestBody UpdateDispatchReq updateDispatchReq
     ) {
         officeService.updateDispatch(dispatchId, updateDispatchReq);
-        return ApiResponse.success(null); // FIXME return값 수정
+        return CommonResponse.success(null); // FIXME return값 수정
+    }
+
+    @RequestMapping(path = "/dispatch-cancel/{dispatch_id}", method = RequestMethod.POST)
+    public CommonResponse<Object> cancelDispatch(
+            @PathVariable("dispatch_id") Long dispatchId
+    ) {
+        officeService.cancelDispatch(dispatchId);
+        return CommonResponse.success(null); // FIXME return값 수정
     }
 
 }
