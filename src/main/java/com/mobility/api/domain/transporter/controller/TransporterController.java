@@ -1,10 +1,15 @@
 package com.mobility.api.domain.transporter.controller;
 
 import com.mobility.api.domain.dispatch.service.DispatcherService;
+import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.domain.transporter.service.TransporterService;
+import com.mobility.api.global.annotation.CurrentUser;
+import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.CommonResponse;
 import com.mobility.api.global.response.ResultCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,20 +17,24 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api1/v1/transporter")
 public class TransporterController {
 
-    private final TransporterService transporterService;
     private final DispatcherService dispatcherService;
 
     @PatchMapping("/dispatch-assign/{dispatch_id}")
-    public CommonResponse<ResultCode> assignDispatch(@PathVariable Long dispatch_id, @AuthenticationPrincipal UserDetails userDetails) { // // todo spring security 로그인한 사용자 정보 가져오기
+    public CommonResponse<ResultCode> assignDispatch(@PathVariable Long dispatch_id, @CurrentUser Transporter transporter) { 
 
-        Long transporterId = userDetails.getTransporterId();
+        Long transporterId = transporter.getId();
+
+        if  (transporterId == null) {
+            throw new GlobalException(ResultCode.NOT_FOUND_USER);
+        }
+
         dispatcherService.assignDispatch(dispatch_id, transporterId);
 
         return CommonResponse.success(ResultCode.DISPATCH_ASSIGN_SUCCESS);
     }
 
-    @PatchMapping("dispatch-cancel/{dispatchId}")
+//    @PatchMapping("dispatch-cancel/{dispatchId}")
 
-    @PatchMapping("/dispatch-complete/{dispatchId}")
+//    @PatchMapping("/dispatch-complete/{dispatchId}")
 
 }

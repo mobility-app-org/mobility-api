@@ -2,12 +2,12 @@ package com.mobility.api.domain.dispatch.service;
 
 import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
-import com.mobility.api.domain.transporter.dto.request.DispatchAssignReq;
 import com.mobility.api.domain.transporter.dto.response.DispatchAssignRes;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.domain.transporter.repository.TransporterRepository;
 import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.ResultCode;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +19,7 @@ public class DispatcherService {
     private final TransporterRepository transporterRepository;
 
     // 기사가 배차를 선택
+    @Transactional
     public DispatchAssignRes assignDispatch(Long dispatchId, Long transporterId) {
 
         // 1. 기사 정보 조회
@@ -34,5 +35,4 @@ public class DispatcherService {
 
         return DispatchAssignRes.from(dispatch);
     }
-
 }
