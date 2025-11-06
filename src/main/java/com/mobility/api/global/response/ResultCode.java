@@ -21,7 +21,7 @@ public enum ResultCode {
      * 2000번대 (배차 관련)
      */
     DISPATCH_ASSIGN_SUCCESS(HttpStatus.OK, 2001, "배차가 상공적으로 되었습니다"),
-    DISPATCH_STATUS_IS_NOT_OPEN(HttpStatus.NOT_FOUND, 2002, "배차 상태가 OPEN이 아닙니다.");
+    DISPATCH_STATUS_IS_NOT_OPEN(HttpStatus.NOT_FOUND, 2002, "배차 상태가 OPEN이 아닙니다."),
 
     /**
      * 3000번대 (기사 관련)
@@ -32,6 +32,7 @@ public enum ResultCode {
      * 4000번대 (사무실 관련)
      */
 
+    FIXME_FAIL(HttpStatus.NOT_FOUND, 9999, "임시 취소 응답 (수정 필요)");
 
     private final HttpStatus status;
     private final int code;
