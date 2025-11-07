@@ -62,4 +62,36 @@ public class Dispatch {
         this.status = StatusType.ASSIGNED;
     }
 
+    public void cancelDispatch(Transporter transporter) {
+
+        // 취소하려는 기사와 요청한 기사가 일치하는지 검증
+        validateOwner(transporter);
+
+        // aasign 상태인지
+        if (this.status != StatusType.ASSIGNED) {
+            throw new GlobalException(ResultCode.CANNOT_CANCEL_DISPATCH);
+        }
+
+        this.transporter = null;
+        this.status = StatusType.OPEN;
+    }
+
+    public void completeDispatch(Transporter transporter) {
+        validateOwner(transporter);
+
+        if (this.status != StatusType.ASSIGNED) {
+            throw new GlobalException(ResultCode.CANNOT_COMPLETE_DISPATCH);
+        }
+
+        this.status = StatusType.COMPLETED;
+    }
+
+    private void validateOwner(Transporter transporter) {
+        if (this.transporter == null) {
+            throw new GlobalException(ResultCode.DISPATCH_NOT_ASSIGNED);
+        }
+        if (!this.transporter.getId().equals(transporter.getId())) {
+            throw new GlobalException(ResultCode.FORBIDDEN);
+        }
+    }
 }

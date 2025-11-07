@@ -17,21 +17,43 @@ public class TransporterController {
     private final DispatcherService dispatcherService;
 
     @PatchMapping("/dispatch-assign/{dispatch_id}")
-    public CommonResponse<ResultCode> assignDispatch(@PathVariable Long dispatch_id, @CurrentUser Transporter transporter) {
+    public CommonResponse<ResultCode> assignDispatch(
+            @PathVariable Long dispatchId, @CurrentUser Transporter transporter) {
 
+        Long transporterId = getValidatedTransporterId(transporter);
+        dispatcherService.assignDispatch(dispatchId, transporterId);
+
+        return CommonResponse.success(ResultCode.DISPATCH_ASSIGN_SUCCESS);
+    }
+
+    @PatchMapping("dispatch-cancel/{dispatchId}")
+    public CommonResponse<ResultCode> cancelDispatch(
+            @PathVariable Long dispatchId, @CurrentUser Transporter transporter) {
+
+        Long transporterId = getValidatedTransporterId(transporter);
+        dispatcherService.cancelDispatch(dispatchId, transporterId);
+
+        return CommonResponse.success(ResultCode.DISPATCH_CANCEL_SUCCESS);
+    }
+
+    @PatchMapping("/dispatch-complete/{dispatchId}")
+    public CommonResponse<ResultCode> completeDispatch(
+            @PathVariable Long dispatchId, @CurrentUser Transporter transporter) {
+
+        Long transporterId = getValidatedTransporterId(transporter);
+        dispatcherService.completeDispatch(dispatchId, transporterId);
+
+        return CommonResponse.success(ResultCode.DISPATCH_COMPLETE_SUCCESS);
+
+    }
+
+    private Long getValidatedTransporterId(Transporter transporter) {
         Long transporterId = transporter.getId();
 
         if  (transporterId == null) {
             throw new GlobalException(ResultCode.NOT_FOUND_USER);
         }
 
-        dispatcherService.assignDispatch(dispatch_id, transporterId);
-
-        return CommonResponse.success(ResultCode.DISPATCH_ASSIGN_SUCCESS);
+        return transporterId;
     }
-
-//    @PatchMapping("dispatch-cancel/{dispatchId}")
-
-//    @PatchMapping("/dispatch-complete/{dispatchId}")
-
 }
