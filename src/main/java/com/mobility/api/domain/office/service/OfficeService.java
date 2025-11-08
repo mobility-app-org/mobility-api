@@ -27,7 +27,6 @@ public class OfficeService {
 
     public void saveDispatch(CreateDispatchReq createDispatchReq) {
 
-        // FIXME nullCheck 필요
         dispatchRepository.save(createDispatchReq.toEntity());
     }
 

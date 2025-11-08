@@ -42,7 +42,7 @@ public class OfficeV1Controller {
             @Valid @RequestBody CreateDispatchReq createDispatchReq
     ) {
         officeService.saveDispatch(createDispatchReq);
-        return CommonResponse.success(null); // FIXME 응답 수정
+        return CommonResponse.success(null);
     }
 
     /**
@@ -59,7 +59,7 @@ public class OfficeV1Controller {
             @RequestBody UpdateDispatchReq updateDispatchReq
     ) {
         officeService.updateDispatch(dispatchId, updateDispatchReq);
-        return CommonResponse.success(null); // FIXME return값 수정
+        return CommonResponse.success(null);
     }
 
     @RequestMapping(path = "/dispatch-cancel/{dispatch_id}", method = RequestMethod.POST)
