@@ -6,6 +6,7 @@ import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
 import com.mobility.api.domain.office.service.OfficeService;
 import com.mobility.api.global.response.ApiResponse;
 import com.mobility.api.global.response.CommonResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class OfficeV1Controller {
      */
     @RequestMapping(path = "/dispatch", method = RequestMethod.POST)
     public CommonResponse<Object> createDispatch(
-            @RequestBody CreateDispatchReq createDispatchReq
+            @Valid @RequestBody CreateDispatchReq createDispatchReq
     ) {
         officeService.saveDispatch(createDispatchReq);
         return CommonResponse.success(null); // FIXME 응답 수정

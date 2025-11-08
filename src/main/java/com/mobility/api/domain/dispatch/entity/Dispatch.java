@@ -8,6 +8,8 @@ import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.exception.GlobalExceptionHandler;
 import com.mobility.api.global.response.ResultCode;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.Comment;
 
@@ -25,9 +27,13 @@ public class Dispatch {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "출발지는 비워둘 수 없습니다.")
     private String startLocation; // 출발지
+
     private String destinationLocation; // 도착지
+
     private Integer charge; // 요금
+
     private String clientPhoneNumber; // 고객 전화번호
 
     @Enumerated(EnumType.STRING)
