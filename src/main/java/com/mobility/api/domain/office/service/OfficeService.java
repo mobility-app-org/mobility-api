@@ -26,7 +26,6 @@ public class OfficeService {
     }
 
     public void saveDispatch(CreateDispatchReq createDispatchReq) {
-
         dispatchRepository.save(createDispatchReq.toEntity());
     }
 
@@ -55,12 +54,11 @@ public class OfficeService {
 
         // 엔티티 조회
         Dispatch dispatch = dispatchRepository.findById(dispatchId)
-                .orElseThrow(() -> new GlobalException(ResultCode.FIXME_FAIL));
+                .orElseThrow(() -> new GlobalException(ResultCode.DISPATCH_TOO_MANY_RESULT));
 
         // (방어 로직) 이미 완료된 배차는 취소(삭제)할 수 없도록 막기
         if (dispatch.getStatus() == StatusType.COMPLETED) {
-            // TODO: "완료된 배차는 취소할 수 없습니다" 등 에러 코드
-            throw new GlobalException(ResultCode.FIXME_FAIL);
+            throw new GlobalException(ResultCode.DISPATCH_IS_ALREADY_COMPLETED);
         }
 
         // TODO: dispatch.cancel() 같은 엔티티 메서드로 캡슐화

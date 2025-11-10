@@ -20,8 +20,10 @@ public enum ResultCode {
     /**
      * 2000번대 (배차 관련)
      */
-    DISPATCH_ASSIGN_SUCCESS(HttpStatus.OK, 2001, "배차가 상공적으로 되었습니다"),
+    DISPATCH_ASSIGN_SUCCESS(HttpStatus.OK, 2001, "배차가 성공적으로 되었습니다"),
     DISPATCH_STATUS_IS_NOT_OPEN(HttpStatus.NOT_FOUND, 2002, "배차 상태가 OPEN이 아닙니다."),
+    DISPATCH_TOO_MANY_RESULT(HttpStatus.CONFLICT, 2003, "배차를 조회하는 데 오류가 발생하였습니다."),
+    DISPATCH_IS_ALREADY_COMPLETED(HttpStatus.CONFLICT, 2004, "이미 완료된 배차입니다."),
 
     /**
      * 3000번대 (기사 관련)
