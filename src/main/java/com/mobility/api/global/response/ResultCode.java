@@ -27,7 +27,7 @@ public enum ResultCode {
     CANNOT_CANCEL_DISPATCH(HttpStatus.BAD_REQUEST, 2005, "배차를 취소할 수 없습니다"),
     CANNOT_COMPLETE_DISPATCH(HttpStatus.BAD_REQUEST, 2006, "배차를 완료할 수 없습니다"),
     DISPATCH_NOT_ASSIGNED(HttpStatus.NOT_FOUND, 2007, "배차 상태가 ASSIGNED이 아닙니다."),
-
+  
     /**
      * 3000번대 (기사 관련)
      */

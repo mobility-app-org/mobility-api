@@ -4,15 +4,22 @@ import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
+import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
+import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.global.enums.ApiResponseCode;
 import com.mobility.api.global.exception.BusinessException;
 import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.ResultCode;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -21,13 +28,41 @@ public class OfficeService {
 
     private final DispatchRepository dispatchRepository;
 
-    public List<Dispatch> findAllDispatch() {
-        return dispatchRepository.findAll();
+    public Page<GetAllDispatchRes> findAllDispatch(DispatchSearchDto searchDto, Pageable pageable) {
+
+        // Specification 객체 생성 (동적 쿼리 정의)
+        Specification<Dispatch> spec = (root, query, cb) -> {
+            // cb: CriteriaBuilder, root: Dispatch 엔티티
+            List<Predicate> predicates = new ArrayList<>();
+
+            // TODO 임시 조건, 프론트 요구사항에 맞게 수정 필요
+            if (searchDto.getStatus() != null) {
+                predicates.add(cb.equal(root.get("status"), searchDto.getStatus()));
+            }
+            if (searchDto.getOfficeId() != null) {
+                predicates.add(cb.equal(root.get("officeId"), searchDto.getOfficeId()));
+            }
+            if (searchDto.getKeyword() != null && !searchDto.getKeyword().isBlank()) {
+                // 예: 출발지(startLocation) 또는 도착지(destinationLocation)에서 키워드 검색
+                predicates.add(
+                        cb.or(
+                                cb.like(root.get("startLocation"), "%" + searchDto.getKeyword() + "%"),
+                                cb.like(root.get("destinationLocation"), "%" + searchDto.getKeyword() + "%")
+                        )
+                );
+            }
+            // 모든 'AND' 조건을 조합
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        // Repository에 'Specification'과 'Pageable'을 둘 다 전달
+        Page<Dispatch> dispatchPage = dispatchRepository.findAll(spec, pageable);
+
+        // Page<Entity> -> Page<Dto>로 변환
+        return dispatchPage.map(dispatch -> new GetAllDispatchRes(dispatch)); // DTO 변환
     }
 
     public void saveDispatch(CreateDispatchReq createDispatchReq) {
-
-        // FIXME nullCheck 필요
         dispatchRepository.save(createDispatchReq.toEntity());
     }
 
@@ -56,12 +91,11 @@ public class OfficeService {
 
         // 엔티티 조회
         Dispatch dispatch = dispatchRepository.findById(dispatchId)
-                .orElseThrow(() -> new GlobalException(ResultCode.FIXME_FAIL));
+                .orElseThrow(() -> new GlobalException(ResultCode.DISPATCH_TOO_MANY_RESULT));
 
         // (방어 로직) 이미 완료된 배차는 취소(삭제)할 수 없도록 막기
         if (dispatch.getStatus() == StatusType.COMPLETED) {
-            // TODO: "완료된 배차는 취소할 수 없습니다" 등 에러 코드
-            throw new GlobalException(ResultCode.FIXME_FAIL);
+            throw new GlobalException(ResultCode.DISPATCH_IS_ALREADY_COMPLETED);
         }
 
         // TODO: dispatch.cancel() 같은 엔티티 메서드로 캡슐화

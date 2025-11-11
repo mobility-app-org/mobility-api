@@ -2,14 +2,16 @@ package com.mobility.api.domain.office.controller;
 
 import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
+import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
+import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.domain.office.service.OfficeService;
-import com.mobility.api.global.response.ApiResponse;
 import com.mobility.api.global.response.CommonResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,12 +24,15 @@ public class OfficeV1Controller {
      * <pre>
      *     사무실 - 배차 리스트 조회
      * </pre>
+     *
      * @return
      */
     @RequestMapping(path = "/dispatch-list", method = RequestMethod.GET)
-    public CommonResponse<List<Dispatch>> getAllDispatch() {
-        // FIXME 사무실, 정렬, 검색 등 조정 필요
-        return CommonResponse.success(officeService.findAllDispatch());
+    public CommonResponse<Page<GetAllDispatchRes>> getAllDispatch(
+            @ModelAttribute DispatchSearchDto searchDto, // 필터용 DTO
+            Pageable pageable                           // 페이징/정렬용
+    ) {
+        return CommonResponse.success(officeService.findAllDispatch(searchDto, pageable));
     }
 
     /**
@@ -38,10 +43,10 @@ public class OfficeV1Controller {
      */
     @RequestMapping(path = "/dispatch", method = RequestMethod.POST)
     public CommonResponse<Object> createDispatch(
-            @RequestBody CreateDispatchReq createDispatchReq
+            @Valid @RequestBody CreateDispatchReq createDispatchReq
     ) {
         officeService.saveDispatch(createDispatchReq);
-        return CommonResponse.success(null); // FIXME 응답 수정
+        return CommonResponse.success(null);
     }
 
     /**
@@ -58,7 +63,7 @@ public class OfficeV1Controller {
             @RequestBody UpdateDispatchReq updateDispatchReq
     ) {
         officeService.updateDispatch(dispatchId, updateDispatchReq);
-        return CommonResponse.success(null); // FIXME return값 수정
+        return CommonResponse.success(null);
     }
 
     @RequestMapping(path = "/dispatch-cancel/{dispatch_id}", method = RequestMethod.POST)
