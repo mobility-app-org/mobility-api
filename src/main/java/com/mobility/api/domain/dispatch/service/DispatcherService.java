@@ -1,8 +1,9 @@
 package com.mobility.api.domain.dispatch.service;
 
+import com.mobility.api.domain.dispatch.dto.response.DispatchCancelRes;
 import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
-import com.mobility.api.domain.transporter.dto.response.DispatchnRes;
+import com.mobility.api.domain.dispatch.dto.response.DispatchRes;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.domain.transporter.repository.TransporterRepository;
 import com.mobility.api.global.exception.GlobalException;
@@ -19,7 +20,7 @@ public class DispatcherService {
     private final TransporterRepository transporterRepository;
 
     @Transactional
-    public DispatchnRes assignDispatch(Long dispatchId, Long transporterId) {
+    public DispatchRes assignDispatch(Long dispatchId, Long transporterId) {
 
         // 1. 기사 정보 조회
         Transporter transporter = transporterRepository.findById(transporterId)
@@ -32,11 +33,11 @@ public class DispatcherService {
         // 3. 배차 할당
         dispatch.assignDispatch(transporter);
 
-        return DispatchnRes.from(dispatch);
+        return DispatchRes.from(dispatch);
     }
 
     @Transactional
-    public DispatchnRes cancelDispatch(Long dispatchId, Long transporterId) {
+    public DispatchCancelRes cancelDispatch(Long dispatchId, Long transporterId) {
 
         // 1. 기사 정보 조회
         Transporter transporter = transporterRepository.findById(transporterId)
@@ -48,13 +49,11 @@ public class DispatcherService {
 
         dispatch.cancelDispatch(transporter);
 
-        return DispatchnRes.from(dispatch);
-
+        return DispatchCancelRes.from(dispatch);
     }
 
-    // 기사가 배차를 완료
     @Transactional
-    public DispatchnRes completeDispatch(Long dispatchId, Long transporterId) {
+    public DispatchRes completeDispatch(Long dispatchId, Long transporterId) {
 
         // 1. 기사 정보 조회
         Transporter transporter = transporterRepository.findById(transporterId)
@@ -66,6 +65,6 @@ public class DispatcherService {
 
         dispatch.completeDispatch(transporter);
 
-        return DispatchnRes.from(dispatch);
+        return DispatchRes.from(dispatch);
     }
 }

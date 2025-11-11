@@ -1,5 +1,7 @@
 package com.mobility.api.domain.transporter.controller;
 
+import com.mobility.api.domain.dispatch.dto.response.DispatchCancelRes;
+import com.mobility.api.domain.dispatch.dto.response.DispatchRes;
 import com.mobility.api.domain.dispatch.service.DispatcherService;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.global.annotation.CurrentUser;
@@ -17,34 +19,30 @@ public class TransporterController {
     private final DispatcherService dispatcherService;
 
     @PatchMapping("/dispatch-assign/{dispatch_id}")
-    public CommonResponse<ResultCode> assignDispatch(
+    public CommonResponse<DispatchRes> assignDispatch(
             @PathVariable Long dispatchId, @CurrentUser Transporter transporter) {
 
         Long transporterId = getValidatedTransporterId(transporter);
-        dispatcherService.assignDispatch(dispatchId, transporterId);
 
-        return CommonResponse.success(ResultCode.DISPATCH_ASSIGN_SUCCESS);
+        return CommonResponse.success(dispatcherService.assignDispatch(dispatchId, transporterId));
     }
 
     @PatchMapping("dispatch-cancel/{dispatchId}")
-    public CommonResponse<ResultCode> cancelDispatch(
+    public CommonResponse<DispatchCancelRes> cancelDispatch(
             @PathVariable Long dispatchId, @CurrentUser Transporter transporter) {
 
         Long transporterId = getValidatedTransporterId(transporter);
-        dispatcherService.cancelDispatch(dispatchId, transporterId);
 
-        return CommonResponse.success(ResultCode.DISPATCH_CANCEL_SUCCESS);
+        return CommonResponse.success(dispatcherService.cancelDispatch(dispatchId, transporterId));
     }
 
     @PatchMapping("/dispatch-complete/{dispatchId}")
-    public CommonResponse<ResultCode> completeDispatch(
+    public CommonResponse<DispatchRes> completeDispatch(
             @PathVariable Long dispatchId, @CurrentUser Transporter transporter) {
 
         Long transporterId = getValidatedTransporterId(transporter);
-        dispatcherService.completeDispatch(dispatchId, transporterId);
 
-        return CommonResponse.success(ResultCode.DISPATCH_COMPLETE_SUCCESS);
-
+        return CommonResponse.success(dispatcherService.completeDispatch(dispatchId, transporterId));
     }
 
     private Long getValidatedTransporterId(Transporter transporter) {
@@ -53,7 +51,6 @@ public class TransporterController {
         if  (transporterId == null) {
             throw new GlobalException(ResultCode.NOT_FOUND_USER);
         }
-
         return transporterId;
     }
 }
