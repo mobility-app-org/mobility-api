@@ -27,6 +27,8 @@ public class GlobalExceptionHandler {
                 .map(fieldError -> fieldError.getDefaultMessage())
                 .orElse("유효하지 않은 요청입니다.");
 
+        log.warn("Validation Failed: {}", message);
+
         return ResponseEntity.badRequest()
                 .body(CommonResponse.fail(ResultCode.INVALID_INPUT, message));
     }
