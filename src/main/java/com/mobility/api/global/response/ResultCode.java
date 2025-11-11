@@ -20,11 +20,17 @@ public enum ResultCode {
     /**
      * 2000번대 (배차 관련)
      */
-    DISPATCH_ASSIGN_SUCCESS(HttpStatus.OK, 2001, "배차가 성공적으로 되었습니다"),
-    DISPATCH_STATUS_IS_NOT_OPEN(HttpStatus.NOT_FOUND, 2002, "배차 상태가 OPEN이 아닙니다."),
-    DISPATCH_TOO_MANY_RESULT(HttpStatus.CONFLICT, 2003, "배차를 조회하는 데 오류가 발생하였습니다."),
-    DISPATCH_IS_ALREADY_COMPLETED(HttpStatus.CONFLICT, 2004, "이미 완료된 배차입니다."),
+    DISPATCH_ASSIGN_SUCCESS(HttpStatus.OK, 2001, "배차가 선택 되었습니다"),
+    DISPATCH_CANCEL_SUCCESS(HttpStatus.OK, 2002, "배차가 취소 되었습니다"),
+    DISPATCH_COMPLETE_SUCCESS(HttpStatus.OK, 2003, "배차가 완료 되었습니다"),
+    DISPATCH_TOO_MANY_RESULT(HttpStatus.CONFLICT, 2004, "배차를 조회하는 데 오류가 발생하였습니다."),
+    DISPATCH_IS_ALREADY_COMPLETED(HttpStatus.CONFLICT, 2005, "이미 완료된 배차입니다."),
+    DISPATCH_NOT_OPEN(HttpStatus.NOT_FOUND, 2006, "배차 상태가 OPEN이 아닙니다."),
+    CANNOT_CANCEL_DISPATCH(HttpStatus.BAD_REQUEST, 2007, "배차를 취소할 수 없습니다"),
+    CANNOT_COMPLETE_DISPATCH(HttpStatus.BAD_REQUEST, 2008, "배차를 완료할 수 없습니다"),
+    DISPATCH_NOT_ASSIGNED(HttpStatus.NOT_FOUND, 2009, "배차 상태가 ASSIGNED이 아닙니다."),
 
+  
     /**
      * 3000번대 (기사 관련)
      */
@@ -34,10 +40,17 @@ public enum ResultCode {
      * 4000번대 (사무실 관련)
      */
 
-    FIXME_FAIL(HttpStatus.NOT_FOUND, 9999, "임시 취소 응답 (수정 필요)");
+    FIXME_FAIL(HttpStatus.NOT_FOUND, 9999, "임시 취소 응답 (수정 필요)"),
+
+    /**
+     * dev
+     */
+    DEV_BAD_REQUEST(HttpStatus.BAD_REQUEST, 9998, "DEV: X-Temp-User-Id 헤더가 유효한 숫자가 아닙니다.");
 
     private final HttpStatus status;
     private final int code;
     private final String message;
+
+
 
 }
