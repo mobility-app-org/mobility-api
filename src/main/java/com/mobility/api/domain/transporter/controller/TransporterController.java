@@ -18,7 +18,7 @@ public class TransporterController {
 
     private final DispatcherService dispatcherService;
 
-    @PatchMapping("/dispatch-assign/{dispatch_id}")
+    @PatchMapping("/dispatch-assign/{dispatchId}")
     public CommonResponse<DispatchRes> assignDispatch(
             @PathVariable Long dispatchId, @CurrentUser Transporter transporter) {
 

@@ -37,10 +37,17 @@ public enum ResultCode {
      * 4000번대 (사무실 관련)
      */
 
-    FIXME_FAIL(HttpStatus.NOT_FOUND, 9999, "임시 취소 응답 (수정 필요)");
+    FIXME_FAIL(HttpStatus.NOT_FOUND, 9999, "임시 취소 응답 (수정 필요)"),
+
+    /**
+     * dev
+     */
+    DEV_BAD_REQUEST(HttpStatus.BAD_REQUEST, 9998, "DEV: X-Temp-User-Id 헤더가 유효한 숫자가 아닙니다.");
 
     private final HttpStatus status;
     private final int code;
     private final String message;
+
+
 
 }
