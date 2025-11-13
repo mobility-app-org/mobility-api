@@ -40,6 +40,9 @@ dependencies {
 	// Postgresql
 	runtimeOnly 'org.postgresql:postgresql'
 
+	// Postgis
+	implementation 'org.hibernate:hibernate-spatial:5.6.11.Final'
+
 	// Spring Security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 

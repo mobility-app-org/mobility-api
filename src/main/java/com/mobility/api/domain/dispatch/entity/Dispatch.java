@@ -5,13 +5,9 @@ import com.mobility.api.domain.dispatch.enums.ServiceType;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.global.exception.GlobalException;
-import com.mobility.api.global.exception.GlobalExceptionHandler;
 import com.mobility.api.global.response.ResultCode;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.hibernate.annotations.Comment;
 
 import java.time.LocalDateTime;
 

@@ -3,12 +3,16 @@ package com.mobility.api.domain.transporter.controller;
 import com.mobility.api.domain.dispatch.dto.response.DispatchCancelRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchRes;
 import com.mobility.api.domain.dispatch.service.DispatcherService;
+import com.mobility.api.domain.dispatch.service.LocationService;
+import com.mobility.api.domain.transporter.dto.request.LocationUpdateReq;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.global.annotation.CurrentUser;
 import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.CommonResponse;
 import com.mobility.api.global.response.ResultCode;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class TransporterController {
 
     private final DispatcherService dispatcherService;
+    private final LocationService locationService;
 
     @PatchMapping("/dispatch-assign/{dispatchId}")
     public CommonResponse<DispatchRes> assignDispatch(
@@ -52,5 +57,19 @@ public class TransporterController {
             throw new GlobalException(ResultCode.NOT_FOUND_USER);
         }
         return transporterId;
+    }
+
+    /*
+        ** 기사 위치 정보 수집 관련
+     */
+    @PostMapping("/location/update")
+    public ResponseEntity<Void> updateTransporterLocation(
+            @Valid @RequestBody LocationUpdateReq locationUpdateReq,
+            @CurrentUser Transporter transporter){
+
+        Long transporterId = getValidatedTransporterId(transporter);
+        locationService.processLocationUpdate(transporterId, locationUpdateReq));
+
+        return ResponseEntity.ok().build();
     }
 }
