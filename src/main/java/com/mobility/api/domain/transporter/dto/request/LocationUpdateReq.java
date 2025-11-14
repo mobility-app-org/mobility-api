@@ -1,6 +1,5 @@
 package com.mobility.api.domain.transporter.dto.request;
 
-import com.mobility.api.domain.transporter.entity.LocationHistory;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

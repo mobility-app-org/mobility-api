@@ -68,7 +68,7 @@ public class TransporterController {
             @CurrentUser Transporter transporter){
 
         Long transporterId = getValidatedTransporterId(transporter);
-        locationService.processLocationUpdate(transporterId, locationUpdateReq));
+        locationService.processLocationUpdate(transporterId, locationUpdateReq);
 
         return ResponseEntity.ok().build();
     }
