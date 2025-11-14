@@ -33,7 +33,7 @@ public class LocationHistory {
     public static LocationHistory of(Transporter transporter, Double latitude, Double longitude) {
 
         // JTS Coordinate 객체 생성 (x, y) -> (경도, 위도) 순서
-        Coordinate coordinate = new Coordinate(latitude, longitude);
+        Coordinate coordinate = new Coordinate(longitude, latitude);
 
         // GeometryFactory를 사용하여 Point 객체 생성
         Point point = geometryFactory.createPoint(coordinate);

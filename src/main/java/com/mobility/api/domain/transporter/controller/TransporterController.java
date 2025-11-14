@@ -3,7 +3,7 @@ package com.mobility.api.domain.transporter.controller;
 import com.mobility.api.domain.dispatch.dto.response.DispatchCancelRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchRes;
 import com.mobility.api.domain.dispatch.service.DispatcherService;
-import com.mobility.api.domain.dispatch.service.LocationService;
+import com.mobility.api.domain.transporter.service.LocationService;
 import com.mobility.api.domain.transporter.dto.request.LocationUpdateReq;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.global.annotation.CurrentUser;
