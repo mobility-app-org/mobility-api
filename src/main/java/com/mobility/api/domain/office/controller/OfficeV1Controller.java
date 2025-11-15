@@ -7,12 +7,15 @@ import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
 import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.domain.office.service.OfficeService;
 import com.mobility.api.global.response.CommonResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "사무실 관련 요청(/api/v1/office/...)")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/office")
@@ -41,6 +44,7 @@ public class OfficeV1Controller {
      * </pre>
      * @param createDispatchReq
      */
+    @Operation(summary = "배차 등록", description = "")
     @RequestMapping(path = "/dispatch", method = RequestMethod.POST)
     public CommonResponse<Object> createDispatch(
             @Valid @RequestBody CreateDispatchReq createDispatchReq
