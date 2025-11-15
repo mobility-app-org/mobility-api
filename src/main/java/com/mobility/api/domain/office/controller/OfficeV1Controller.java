@@ -74,4 +74,16 @@ public class OfficeV1Controller {
         return CommonResponse.success(null); // FIXME return값 수정
     }
 
+    @RequestMapping(path = "/billings", method = RequestMethod.GET)
+    public CommonResponse<String> getBillings() {
+
+        return CommonResponse.success("프론트 개발 후 작업 예정입니다.");
+    }
+
+    @RequestMapping(path = "/statistics", method = RequestMethod.GET)
+    public CommonResponse<String> getStatistics() {
+
+        return CommonResponse.success("프론트 개발 후 작업 예정입니다.");
+    }
+
 }
