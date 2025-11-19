@@ -67,21 +67,21 @@ public class OfficeService {
     }
 
     @Transactional
-    public void updateDispatch(Long dispatchId,  UpdateDispatchReq updateDispatchReq) {
+    public void updateDispatch(Long dispatchId,  UpdateDispatchReq req) {
 
         Dispatch dispatch = dispatchRepository.findById(dispatchId)
                 .orElseThrow(() -> new BusinessException(ApiResponseCode.DISPATCH_NOT_FOUND));
 
         // TODO setter 삭제 후 updateStartLocation 등 메서드 생성하는 것이 좋다고 함 (캡슐화)
         // TODO 전체 update 메서드도 Dispatch 내부에 생성하면 좋을듯
-        if (updateDispatchReq.getStartLocation() != null) dispatch.setStartLocation(updateDispatchReq.getStartLocation());
-        if (updateDispatchReq.getDestinationLocation() != null) dispatch.setDestinationLocation(updateDispatchReq.getDestinationLocation());
-        if (updateDispatchReq.getCharge() != null) dispatch.setCharge(updateDispatchReq.getCharge());
-        if (updateDispatchReq.getClientPhoneNumber() != null) dispatch.setClientPhoneNumber(updateDispatchReq.getClientPhoneNumber());
-        if (updateDispatchReq.getStatus() != null) dispatch.setStatus(updateDispatchReq.getStatus());
-        if (updateDispatchReq.getCall() != null) dispatch.setCall(updateDispatchReq.getCall());
-        if (updateDispatchReq.getActive() != null) dispatch.setActive(updateDispatchReq.getActive());
-        if (updateDispatchReq.getService() != null) dispatch.setService(updateDispatchReq.getService());
+        if (req.startLocation() != null) dispatch.setStartLocation(req.startLocation());
+        if (req.destinationLocation() != null) dispatch.setDestinationLocation(req.destinationLocation());
+        if (req.charge() != null) dispatch.setCharge(req.charge());
+        if (req.clientPhoneNumber() != null) dispatch.setClientPhoneNumber(req.clientPhoneNumber());
+        if (req.status() != null) dispatch.setStatus(req.status());
+        if (req.call() != null) dispatch.setCall(req.call());
+        if (req.active() != null) dispatch.setActive(req.active());
+        if (req.service() != null) dispatch.setService(req.service());
 
         // 메서드가 종료될 때, @Transactional이 변경된 내용을 감지(Dirty Checking)하여 자동으로 DB에 UPDATE 쿼리를 실행 (save() 호출 불필요)
     }
