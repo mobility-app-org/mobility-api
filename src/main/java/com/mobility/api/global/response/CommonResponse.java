@@ -1,25 +1,30 @@
 package com.mobility.api.global.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
+@Schema(description = "공통 응답 객체")
 @Getter
 public class CommonResponse<T> {
 
     /**
      * 응답 상태 코드 (ResultCode에 정의된 code 값)
      */
+    @Schema(description = "응답 상태 코드", example = "0")
     private final Integer statusCode;
 
     /**
      * 응답 메시지 (ResultCode에 정의된 메시지 또는 예외 메시지)
      */
+    @Schema(description = "응답 메시지", example = "정상 처리 되었습니다.")
     private final String message;
 
     /**
      * 실제 응답 데이터
      */
     @JsonInclude(JsonInclude.Include.NON_NULL) // null 객체일 경우 제외
+    @Schema(description = "실제 응답 데이터")
     private T data;
 
     /**
