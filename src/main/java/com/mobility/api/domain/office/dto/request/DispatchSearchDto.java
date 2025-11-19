@@ -1,6 +1,7 @@
 package com.mobility.api.domain.office.dto.request;
 
 import com.mobility.api.domain.dispatch.enums.StatusType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +12,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@Schema(description = "배차 리스트 조회 필터 :: 프론트 요구사항에 맞게 수정 필요")
 public class DispatchSearchDto {
 
     private String keyword; // 검색어 (예: 출발지, 도착지 동시 검색)
