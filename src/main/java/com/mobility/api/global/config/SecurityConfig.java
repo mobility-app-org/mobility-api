@@ -41,7 +41,7 @@ public class SecurityConfig {
 
                 // 5. API 경로에 대한 접근 허용 설정
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api1/**").permitAll() // /api1/로 시작하는 모든 요청 허용
+                        .requestMatchers("/api/**").permitAll() // /api/로 시작하는 모든 요청 허용
                         .requestMatchers(SWAGGER_URLS).permitAll()
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요 (사실상 거의 없음)
                 );
@@ -64,8 +64,8 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable())
 
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api1/auth/**").permitAll() // 로그인 API 등은 허용
-                        .requestMatchers("/api1/**").authenticated() // 나머지 API는 인증 필요
+                        .requestMatchers("/api/auth/**").permitAll() // 로그인 API 등은 허용
+                        .requestMatchers("/api/**").authenticated() // 나머지 API는 인증 필요
                         .anyRequest().denyAll()
                 );
 
