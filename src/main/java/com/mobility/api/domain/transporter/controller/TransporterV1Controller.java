@@ -8,13 +8,15 @@ import com.mobility.api.global.annotation.CurrentUser;
 import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.CommonResponse;
 import com.mobility.api.global.response.ResultCode;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "기사 관련 요청(/api/v1/transporter/...)")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api1/v1/transporter")
-public class TransporterController {
+@RequestMapping("/api/v1/transporter")
+public class TransporterV1Controller {
 
     private final DispatcherService dispatcherService;
 
