@@ -85,7 +85,7 @@ public class OfficeV1Controller {
      * @param dispatchId
      * @return
      */
-    @Operation(summary = "배차 취소", description = "")
+    @Operation(summary = "배차 취소 (삭제)", description = "")
     @RequestMapping(path = "/dispatch-cancel/{dispatch_id}", method = RequestMethod.POST)
     public CommonResponse<Object> cancelDispatch(
             @PathVariable("dispatch_id") Long dispatchId
