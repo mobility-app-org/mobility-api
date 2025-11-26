@@ -10,19 +10,22 @@ import com.mobility.api.global.annotation.CurrentUser;
 import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.CommonResponse;
 import com.mobility.api.global.response.ResultCode;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "기사 관련 요청(/api/v1/transporter/...)")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api1/v1/transporter")
-public class TransporterController {
+@RequestMapping("/api/v1/transporter")
+public class TransporterV1Controller {
 
     private final DispatcherService dispatcherService;
-    private final LocationService locationService;
 
+    @Operation(summary = "배차 할당", description = "")
     @PatchMapping("/dispatch-assign/{dispatchId}")
     public CommonResponse<DispatchRes> assignDispatch(
             @PathVariable Long dispatchId, @CurrentUser Transporter transporter) {
@@ -32,6 +35,7 @@ public class TransporterController {
         return CommonResponse.success(dispatcherService.assignDispatch(dispatchId, transporterId));
     }
 
+    @Operation(summary = "배차 취소", description = "")
     @PatchMapping("dispatch-cancel/{dispatchId}")
     public CommonResponse<DispatchCancelRes> cancelDispatch(
             @PathVariable Long dispatchId, @CurrentUser Transporter transporter) {
@@ -41,6 +45,7 @@ public class TransporterController {
         return CommonResponse.success(dispatcherService.cancelDispatch(dispatchId, transporterId));
     }
 
+    @Operation(summary = "배차 완료", description = "")
     @PatchMapping("/dispatch-complete/{dispatchId}")
     public CommonResponse<DispatchRes> completeDispatch(
             @PathVariable Long dispatchId, @CurrentUser Transporter transporter) {

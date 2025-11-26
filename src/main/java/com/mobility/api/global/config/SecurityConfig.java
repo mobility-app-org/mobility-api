@@ -12,6 +12,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private static final String[] SWAGGER_URLS = {
+            "/swagger-ui.html", // 메인 UI 페이지
+            "/swagger-ui/**",   // UI 리소스 (js, css)
+            "/v3/api-docs/**"   // API 설계도(JSON)
+    };
+
     /**
      * 'dev' 또는 'local' 프로필일 때 활성화되는 보안 설정
      * - 모든 API(/api1/**) 요청을 인증 없이 허용합니다.
@@ -35,7 +41,8 @@ public class SecurityConfig {
 
                 // 5. API 경로에 대한 접근 허용 설정
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api1/**").permitAll() // /api1/로 시작하는 모든 요청 허용
+                        .requestMatchers("/api/**").permitAll() // /api/로 시작하는 모든 요청 허용
+                        .requestMatchers(SWAGGER_URLS).permitAll()
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요 (사실상 거의 없음)
                 );
 
@@ -57,8 +64,8 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable())
 
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api1/auth/**").permitAll() // 로그인 API 등은 허용
-                        .requestMatchers("/api1/**").authenticated() // 나머지 API는 인증 필요
+                        .requestMatchers("/api/auth/**").permitAll() // 로그인 API 등은 허용
+                        .requestMatchers("/api/**").authenticated() // 나머지 API는 인증 필요
                         .anyRequest().denyAll()
                 );
 
