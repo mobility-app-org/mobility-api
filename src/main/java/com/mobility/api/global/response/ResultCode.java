@@ -30,11 +30,10 @@ public enum ResultCode {
     CANNOT_COMPLETE_DISPATCH(HttpStatus.BAD_REQUEST, 2008, "배차를 완료할 수 없습니다"),
     DISPATCH_NOT_ASSIGNED(HttpStatus.NOT_FOUND, 2009, "배차 상태가 ASSIGNED이 아닙니다."),
 
-  
     /**
      * 3000번대 (기사 관련)
      */
-
+    TRANSPORTER_LOCATION_SAVE_SUCCESS(HttpStatus.OK, 3001, "기사 위도 경도 정보가 저장되었습니다"),
 
     /**
      * 4000번대 (사무실 관련)

@@ -4,6 +4,7 @@ import com.mobility.api.domain.dispatch.dto.response.DispatchCancelRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchRes;
 import com.mobility.api.domain.dispatch.service.DispatcherService;
 import com.mobility.api.domain.transporter.dto.request.LocationUpdateReq;
+import com.mobility.api.domain.transporter.dto.response.LocationUpdateRes;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.domain.transporter.service.LocationService;
 import com.mobility.api.global.annotation.CurrentUser;
@@ -70,14 +71,16 @@ public class TransporterV1Controller {
     /*
         ** 기사 위치 정보 수집 관련
      */
+    @Operation(summary = "기사 실시간 위치 업데이트", description = "기사 앱에서 전송된 위도(latitude), 경도(longitude) 정보를 저장")
     @PostMapping("/location/update")
-    public ResponseEntity<Void> updateTransporterLocation(
+    public CommonResponse<LocationUpdateRes> updateTransporterLocation(
             @Valid @RequestBody LocationUpdateReq locationUpdateReq,
             @CurrentUser Transporter transporter){
 
         Long transporterId = getValidatedTransporterId(transporter);
-        locationService.processLocationUpdate(transporterId, locationUpdateReq);
+        Long savedId = locationService.processLocationUpdate(transporterId, locationUpdateReq);
+        LocationUpdateRes response = LocationUpdateRes.from(savedId);
 
-        return ResponseEntity.ok().build();
+        return CommonResponse.success(response);
     }
 }

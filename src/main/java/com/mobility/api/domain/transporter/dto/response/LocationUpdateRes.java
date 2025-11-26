@@ -1,19 +1,20 @@
 package com.mobility.api.domain.transporter.dto.response;
 
-import com.mobility.api.domain.transporter.entity.LocationHistory;
-import com.mobility.api.global.exception.GlobalException;
-import com.mobility.api.global.response.ResultCode;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public record LocationUpdateRes(
+        @JsonProperty("transporter_id")
+        @Schema(description = "위치가 업데이트된 기사의 고유 ID", example = "2")
         Long transporterId
 ) {
-    public static LocationUpdateRes from(LocationHistory locationHistory) {
-        if (locationHistory.getTransporter() != null) {
-            throw new GlobalException(ResultCode.NOT_FOUND_USER);
+    public static LocationUpdateRes from(Long transporterId) {
+            return new LocationUpdateRes(transporterId);
         }
 
-        return new LocationUpdateRes(
-                locationHistory.getTransporter().getId()
-        );
-    }
+//    public static LocationUpdateRes from(LocationHistory locationHistory) {
+//        return new LocationUpdateRes(
+//                locationHistory.getTransporter().getId()
+//        );
+//    }
 }

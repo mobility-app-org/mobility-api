@@ -1,5 +1,6 @@
 package com.mobility.api.domain.transporter.dto.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -9,11 +10,13 @@ public record LocationUpdateReq(
         @NotNull(message = "위도는 필수값입니다.")
         @Min(value = -90, message = "위도는 -90에서 90 사이여야 합니다.")
         @Max(value = 90, message = "위도는 -90에서 90 사이여야 합니다.")
+        @Schema(description = "위도 (Latitude)", example = "37.514425")
         Double latitude,
 
         @NotNull(message = "경도는 필수값입니다.")
         @Min(value = -180, message = "경도는 -180에서 180 사이여야 합니다.")
         @Max(value = 180, message = "경도는 -180에서 180 사이여야 합니다.")
+        @Schema(description = "경도 (Longitude)", example = "127.097713")
         Double longitude
 ){
     public static LocationUpdateReq of(Double latitude, Double longitude) {

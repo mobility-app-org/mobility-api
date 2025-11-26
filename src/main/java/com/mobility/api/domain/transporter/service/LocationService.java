@@ -20,7 +20,7 @@ public class LocationService {
     private final TransporterRepository transporterRepository;
 
     @Transactional
-    public void processLocationUpdate(Long transporterId, @Valid LocationUpdateReq req) {
+    public Long processLocationUpdate(Long transporterId, @Valid LocationUpdateReq req) {
 
         // 1. 기사 정보 찾기
         Transporter transporter = transporterRepository.findById(transporterId)
@@ -33,5 +33,7 @@ public class LocationService {
                 req.longitude()
         );
         locationRepository.save(locationHistory);
+
+        return transporter.getId();
     }
 }
