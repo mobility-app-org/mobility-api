@@ -28,18 +28,12 @@ public class DispatcherService {
         Transporter transporter = transporterRepository.findById(transporterId)
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
 
-        log.info("기사 정보 조회 완 : {}", transporter);
-
         // 2. 배차 정보 조회 -> DB 로우에 락이 걸림
         Dispatch dispatch = dispatchRepository.findByIdWithPessimisticLock(dispatchId)
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_DISPATCH));
 
-        log.info("배차 정보 조회 완 : {}", dispatch);
-
         // 3. 배차 할당
         dispatch.assignDispatch(transporter);
-
-        log.info("배차 할당 완");
 
         return DispatchRes.from(dispatch);
     }
@@ -67,7 +61,7 @@ public class DispatcherService {
         Transporter transporter = transporterRepository.findById(transporterId)
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
 
-        // 2. 배차 정보 조회 (동시성 제어를 위해 Lock)
+        // 2. 배차 정보 조회
         Dispatch dispatch = dispatchRepository.findByIdWithPessimisticLock(dispatchId)
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_DISPATCH));
 

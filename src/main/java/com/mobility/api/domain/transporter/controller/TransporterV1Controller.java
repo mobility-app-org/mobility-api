@@ -39,7 +39,7 @@ public class TransporterV1Controller {
     }
 
     @Operation(summary = "배차 취소", description = "")
-    @PatchMapping("dispatch-cancel/{dispatchId}")
+    @PatchMapping("/dispatch-cancel/{dispatchId}")
     public CommonResponse<DispatchCancelRes> cancelDispatch(
             @PathVariable Long dispatchId, @CurrentUser Transporter transporter) {
 
