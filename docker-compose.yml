@@ -14,11 +14,12 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_PROFILES_ACTIVE=docker # Dockerfile의 ENV와 일치
     depends_on:
-      - db # 'db' 서비스가 먼저 실행된 후에 실행됨
+      db:
+        condition: service_healthy
 
   # 2. PostgreSQL 서비스
   db:
-    image: postgres
+    image: postgis/postgis:15-3.4
     container_name: postgres-mobility
 
     ports:

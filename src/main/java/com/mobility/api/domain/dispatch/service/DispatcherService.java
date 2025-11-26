@@ -10,8 +10,10 @@ import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.ResultCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DispatcherService {
@@ -59,7 +61,7 @@ public class DispatcherService {
         Transporter transporter = transporterRepository.findById(transporterId)
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
 
-        // 2. 배차 정보 조회 (동시성 제어를 위해 Lock)
+        // 2. 배차 정보 조회
         Dispatch dispatch = dispatchRepository.findByIdWithPessimisticLock(dispatchId)
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_DISPATCH));
 

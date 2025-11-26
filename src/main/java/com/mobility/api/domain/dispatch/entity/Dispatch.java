@@ -5,13 +5,10 @@ import com.mobility.api.domain.dispatch.enums.ServiceType;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.global.exception.GlobalException;
-import com.mobility.api.global.exception.GlobalExceptionHandler;
 import com.mobility.api.global.response.ResultCode;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.hibernate.annotations.Comment;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 
@@ -21,6 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Slf4j
 public class Dispatch {
 
     @Id
@@ -35,6 +33,7 @@ public class Dispatch {
     @Enumerated(EnumType.STRING)
     private StatusType status; // 배차 상태
 
+    @Column(name = "call_type")
     @Enumerated(EnumType.STRING)
     private CallType call; // 콜 타입
 
@@ -44,7 +43,9 @@ public class Dispatch {
     private Boolean active; // 활성화 여부 :: 임시저장 등에 사용
 
     // FIXME office_id : 사무실 id :: 외래키 설정 필요
+    @Column(name = "office_id")
     private Long officeId;
+//    private Office office;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transporter_id")
@@ -57,7 +58,7 @@ public class Dispatch {
 
         // 1. 유효성 검증 : 이미 배차되어있는지 확인
         if (this.status != StatusType.OPEN) {
-            throw new GlobalException(ResultCode.FORBIDDEN);
+            throw new GlobalException(ResultCode.DISPATCH_NOT_OPEN);
         }
 
         this.transporter = transporter;
@@ -65,11 +66,8 @@ public class Dispatch {
     }
 
     public void cancelDispatch(Transporter transporter) {
-
-        // 취소하려는 기사와 요청한 기사가 일치하는지 검증
         validateOwner(transporter);
 
-        // aasign 상태인지
         if (this.status != StatusType.ASSIGNED) {
             throw new GlobalException(ResultCode.CANNOT_CANCEL_DISPATCH);
         }
@@ -90,9 +88,22 @@ public class Dispatch {
 
     private void validateOwner(Transporter transporter) {
         if (this.transporter == null) {
+            log.info(">>> [Error] validateOwner 실패: DB에는 있다는데 앱에서는 transporter가 NULL입니다!");
             throw new GlobalException(ResultCode.DISPATCH_NOT_ASSIGNED);
         }
-        if (!this.transporter.getId().equals(transporter.getId())) {
+//        if (!this.transporter.getId().equals(transporter.getId())) {
+//            throw new GlobalException(ResultCode.FORBIDDEN);
+//        }
+        // 2. ID 비교 값 직접 출력
+        Long assignedId = this.transporter.getId();
+        Long requestId = transporter.getId();
+
+        log.info(">>> [Check] 검증 시작");
+        log.info(">>> 배차의 주인 ID (DB): " + assignedId);
+        log.info(">>> 요청자 ID (Header): " + requestId);
+
+        if (!assignedId.equals(requestId)) {
+            log.info(">>> [Error] ID 불일치! 403 예외 발생");
             throw new GlobalException(ResultCode.FORBIDDEN);
         }
     }
