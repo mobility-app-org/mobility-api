@@ -2,3 +2,10 @@ logging:
   level:
     org.hibernate.orm.boot: debug
 
+spring:
+  jpa:
+    properties:
+      hibernate:
+        ddl-auto: update # 변경된 부분만 반영 (테이블 없으면 생성)
+        # Hibernate 6.x 이상 사용 시 권장 설정
+#        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
