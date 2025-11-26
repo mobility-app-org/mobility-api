@@ -46,60 +46,57 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
 
         Class<?> parameterType = parameter.getParameterType(); // 컨트롤러가 요청한 파라미터 타입
 
-        // 'dev' 또는 'local' 프로필이 활성화되어 있을 때만 이 로직을 실행합니다.
+        // -----------------------------------------------------------
+        // 1. [DEV/LOCAL] 개발 환경용 인증 우회 로직
+        // -----------------------------------------------------------
         if (env.acceptsProfiles(Profiles.of("dev", "local"))) {
             HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
             String tempUserIdHeader = request.getHeader("X-Temp-User-Id"); // Postman에서 보낸 헤더
 
-            if (tempUserIdHeader != null && !tempUserIdHeader.isBlank()) {
-                try {
-                    Long tempUserId = Long.parseLong(tempUserIdHeader);
-
-                    // 컨트롤러가 요청한 타입에 맞춰 임시 값을 반환합니다.
-                    if (Long.class.isAssignableFrom(parameterType)) {
-                        // @CurrentUser Long transporterId
-                        return tempUserId; // DB 조회 없이 ID만 반환
-                    }
-                    if (Transporter.class.isAssignableFrom(parameterType)) {
-                        // @CurrentUser Transporter transporter
-                        // DB에서 임시 ID로 기사를 조회해서 반환
-                        return transporterRepository.findById(tempUserId)
-                                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
-                    }
-
-                } catch (NumberFormatException e) {
-                    throw new GlobalException(ResultCode.DEV_BAD_REQUEST);
+            // 헤더가 없으면 기본값 1L 사용, 있으면 파싱
+            Long targetUserId = (tempUserIdHeader == null || tempUserIdHeader.isBlank())
+                    ? 1L
+                    : Long.parseLong(tempUserIdHeader);
+            try {
+                // (1) ID(Long)만 필요한 경우
+                if (Long.class.isAssignableFrom(parameterType)) {
+                    return targetUserId;
                 }
+
+                // (2) 엔티티(Transporter)가 필요한 경우
+                if (Transporter.class.isAssignableFrom(parameterType)) {
+                    return transporterRepository.findById(targetUserId)
+                            .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
+                }
+            } catch (NumberFormatException e) {
+                throw new GlobalException(ResultCode.DEV_BAD_REQUEST);
             }
-            // 'dev' 프로필이지만 헤더가 없는 경우, Postman 테스트 편의를 위해 1L을 기본값으로 사용할 수 있습니다.
-            // (이 부분이 필요 없다면 삭제)
-            // if (Long.class.isAssignableFrom(parameterType)) return 1L;
-            // if (Transporter.class.isAssignableFrom(parameterType)) return transporterRepository.findById(1L).get();
         }
 
-        // --- 11. [운영(prod) 환경 또는 dev 바이패스 실패 시의 실제 인증 로직] ---
+        // -----------------------------------------------------------
+        // 2. [PROD] 실제 운영 환경 인증 로직 (Spring Security)
+        // -----------------------------------------------------------
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !(authentication.getPrincipal() instanceof PrincipalDetails)) {
-            // 'prod' 환경에서 인증 실패 시 null 대신 명시적인 예외를 발생시킵니다.
             throw new GlobalException(ResultCode.UNAUTHORIZED);
         }
 
         PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
 
+        // (1) ID(Long) 반환
         if (Long.class.isAssignableFrom(parameterType)) {
-            // @CurrentUser Long transporterId
-            return principalDetails.getTransporterId();
+            return principalDetails.getTransporterId(); // PrincipalDetails에 해당 메서드 필요
         }
 
-//        if (Transporter.class.isAssignableFrom(parameterType)) {
-            // @CurrentUser Transporter transporter (컨트롤러에서 사용 중이므로 주석 해제)
-            // (PrincipalDetails에 getTransporter() 메서드가 반드시 있어야 함)
-//            return principalDetails.getTransporter();
-//        }
+        // (2) 엔티티(Transporter) 반환
+        // 주의: 세션/토큰에는 보통 엔티티 전체를 담지 않으므로, 여기서 ID로 다시 조회하는 것이 안전합니다.
+        if (Transporter.class.isAssignableFrom(parameterType)) {
+            return transporterRepository.findById(principalDetails.getTransporterId())
+                    .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
+        }
 
         if (PrincipalDetails.class.isAssignableFrom(parameterType)) {
-            // @CurrentUser PrincipalDetails principalDetails
             return principalDetails;
         }
 

@@ -31,6 +31,7 @@ public class Dispatch {
     @Enumerated(EnumType.STRING)
     private StatusType status; // 배차 상태
 
+    @Column(name = "call_type")
     @Enumerated(EnumType.STRING)
     private CallType call; // 콜 타입
 
@@ -40,7 +41,9 @@ public class Dispatch {
     private Boolean active; // 활성화 여부 :: 임시저장 등에 사용
 
     // FIXME office_id : 사무실 id :: 외래키 설정 필요
+    @JoinColumn(name = "office_id")
     private Long officeId;
+//    private Office office;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transporter_id")
@@ -53,7 +56,7 @@ public class Dispatch {
 
         // 1. 유효성 검증 : 이미 배차되어있는지 확인
         if (this.status != StatusType.OPEN) {
-            throw new GlobalException(ResultCode.FORBIDDEN);
+            throw new GlobalException(ResultCode.DISPATCH_NOT_OPEN);
         }
 
         this.transporter = transporter;

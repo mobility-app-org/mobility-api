@@ -10,9 +10,9 @@ public record DispatchRes(
         Long transporterId
 ) {
     public static DispatchRes from(Dispatch dispatch) {
-        if (dispatch.getTransporter() != null) {
-            throw new GlobalException(ResultCode.NOT_FOUND_USER);
-        }
+//        if (dispatch.getTransporter() != null) {
+//            throw new GlobalException(ResultCode.NOT_FOUND_USER);
+//        }
 
         return new DispatchRes(
                 dispatch.getId(),

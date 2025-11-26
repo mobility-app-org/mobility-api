@@ -22,7 +22,7 @@ public class LocationService {
     @Transactional
     public void processLocationUpdate(Long transporterId, @Valid LocationUpdateReq req) {
 
-        // 1. 기사 정보 조회
+        // 1. 기사 정보 찾기
         Transporter transporter = transporterRepository.findById(transporterId)
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
 
@@ -32,7 +32,6 @@ public class LocationService {
                 req.latitude(),
                 req.longitude()
         );
-
         locationRepository.save(locationHistory);
     }
 }
