@@ -3,7 +3,7 @@ package com.mobility.api.domain.dispatch.service;
 import com.mobility.api.domain.dispatch.dto.response.DispatchCancelRes;
 import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
-import com.mobility.api.domain.dispatch.dto.response.DispatchRes;
+import com.mobility.api.domain.dispatch.dto.response.DispatchAssignCompleteRes;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.domain.transporter.repository.TransporterRepository;
 import com.mobility.api.global.exception.GlobalException;
@@ -22,7 +22,7 @@ public class DispatcherService {
     private final TransporterRepository transporterRepository;
 
     @Transactional
-    public DispatchRes assignDispatch(Long dispatchId, Long transporterId) {
+    public DispatchAssignCompleteRes assignDispatch(Long dispatchId, Long transporterId) {
 
         // 1. 기사 정보 조회
         Transporter transporter = transporterRepository.findById(transporterId)
@@ -35,7 +35,7 @@ public class DispatcherService {
         // 3. 배차 할당
         dispatch.assignDispatch(transporter);
 
-        return DispatchRes.from(dispatch);
+        return DispatchAssignCompleteRes.from(dispatch);
     }
 
     @Transactional
@@ -55,7 +55,7 @@ public class DispatcherService {
     }
 
     @Transactional
-    public DispatchRes completeDispatch(Long dispatchId, Long transporterId) {
+    public DispatchAssignCompleteRes completeDispatch(Long dispatchId, Long transporterId) {
 
         // 1. 기사 정보 조회
         Transporter transporter = transporterRepository.findById(transporterId)
@@ -67,6 +67,6 @@ public class DispatcherService {
 
         dispatch.completeDispatch(transporter);
 
-        return DispatchRes.from(dispatch);
+        return DispatchAssignCompleteRes.from(dispatch);
     }
 }
