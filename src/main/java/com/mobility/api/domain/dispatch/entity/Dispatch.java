@@ -26,7 +26,15 @@ public class Dispatch {
     private Long id;
 
     private String startLocation; // 출발지
+
+    private double startLatitude; // 출발지 위도
+    private double startLongitude; // 출발지 경도
+
     private String destinationLocation; // 도착지
+
+    private double destinationLatitude; // 도착지 위도
+    private double destinationLongitude; // 도착지 경도
+
     private Integer charge; // 요금
     private String clientPhoneNumber; // 고객 전화번호
 
