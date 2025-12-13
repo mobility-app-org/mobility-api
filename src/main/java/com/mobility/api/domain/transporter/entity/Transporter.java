@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDateTime;
 
@@ -25,6 +26,11 @@ public class Transporter {
 
     @Column(name = "phone")
     private String phone;
+
+    // 실시간 위치 검색용 필드 (PostGIS Point)
+    // columnDefinition을 통해 SRID 4326(위경도)임을 명시
+    @Column(name = "current_location", columnDefinition = "geometry(Point, 4326)")
+    private Point currentLocation;
 
     @Column(name = "is_auto_dispatch")
     private boolean isAutoDispatch;
