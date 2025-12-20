@@ -1,8 +1,6 @@
 package com.mobility.api.domain.dispatch.entity;
 
-import com.mobility.api.domain.dispatch.enums.CallType;
-import com.mobility.api.domain.dispatch.enums.ServiceType;
-import com.mobility.api.domain.dispatch.enums.StatusType;
+import com.mobility.api.domain.dispatch.enums.*;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.ResultCode;
@@ -49,6 +47,16 @@ public class Dispatch {
     private ServiceType service; // 탁송 / 대리
 
     private Boolean active; // 활성화 여부 :: 임시저장 등에 사용
+
+    // Tags (경유 여부, 결제 방식, 톨비 방식)
+    @Enumerated(EnumType.STRING)
+    private ViaType viaType; // 경유 여부 (경유 / null)
+
+    @Enumerated(EnumType.STRING)
+    private PaymentType paymentType; // 결제 방식 (현금 / 후불 / 완후)
+
+    @Enumerated(EnumType.STRING)
+    private TollType tollType; // 톨비 방식 (톨포 / 톨별 / 하이패스)
 
     // FIXME office_id : 사무실 id :: 외래키 설정 필요
     @Column(name = "office_id")
