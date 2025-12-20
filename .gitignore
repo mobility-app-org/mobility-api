@@ -41,3 +41,5 @@ out/
 /src/test/resources/*.properties
 
 .env
+
+CLAUDE.md

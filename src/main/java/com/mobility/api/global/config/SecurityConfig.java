@@ -20,11 +20,12 @@ public class SecurityConfig {
 
     /**
      * 'dev' 또는 'local' 프로필일 때 활성화되는 보안 설정
+     * 프로필이 지정되지 않은 경우에도 기본으로 사용
      * - 모든 API(/api/**) 요청을 인증 없이 허용
      * - 'X-Temp-User-Id' 헤더를 사용한 임시 인증이 가능
      */
     @Bean
-    @Profile({"dev", "local"})
+    @Profile({"dev", "local", "default"})
     public SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 // 1. CSRF 비활성화 (Stateless API이므로)

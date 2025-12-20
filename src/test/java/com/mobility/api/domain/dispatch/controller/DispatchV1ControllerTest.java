@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
+import com.mobility.api.domain.dispatch.service.DispatcherService;
 import com.mobility.api.domain.transporter.dto.response.TransporterMatchResponse;
 import com.mobility.api.domain.transporter.repository.TransporterRepository;
 import com.mobility.api.domain.transporter.service.TransporterService;
@@ -43,6 +44,9 @@ class DispatchV1ControllerTest {
 
     @MockitoBean
     private TransporterRepository transporterRepository;
+
+    @MockitoBean
+    private DispatcherService dispatcherService;
 
     @Test
     @DisplayName("[API] 배차 주변 기사 조회 - 성공 (200 OK)")
