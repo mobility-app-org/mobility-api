@@ -23,7 +23,7 @@ public interface DispatchRepository extends JpaRepository<Dispatch, Long>,
      * 기사의 현재 위치(lat, lon) 기준, 전체 배차를 거리순으로 조회
      * @param lat 기사의 현재 위도
      * @param lon 기사의 현재 경도
-     * @param statuses 필터링할 배차 상태 목록 (null이면 전체 조회)
+     * @param statuses 필터링할 배차 상태 목록 (빈 리스트면 전체 조회)
      * @return 거리순으로 정렬된 배차 리스트
      */
     @Query(value = """

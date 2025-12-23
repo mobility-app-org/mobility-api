@@ -14,7 +14,7 @@ public record DispatchListSearchReq(
                 description = "필터링할 배차 상태 목록 (복수 선택 가능, 미입력 시 전체 조회)",
                 example = "[\"OPEN\", \"ASSIGNED\"]"
         )
-        List<StatusType> statuses
+        List<StatusType> status
 ) {
     /**
      * 정적 팩토리 메서드

@@ -120,13 +120,14 @@ public class DispatcherService {
     public List<DispatchListItemRes> getDispatchListByDistance(Long transporterId, List<StatusType> statuses) {
         // 1. 기사의 최신 위치 조회
         LocationHistory latestLocation = locationRepository.findFirstByTransporter_IdOrderByIdDesc(transporterId)
-                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND));
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
 
         // 2. 기사 위치 기준으로 배차를 거리순으로 조회 (상태 필터링 적용)
         double lat = latestLocation.getLocation().getY();
         double lon = latestLocation.getLocation().getX();
 
-        // StatusType enum을 String으로 변환 (null safe)
+        // StatusType enum을 String으로 변환
+        // 빈 리스트면 null로 전달하여 PostgreSQL IN 절 에러 방지
         List<String> statusStrings = null;
         if (statuses != null && !statuses.isEmpty()) {
             statusStrings = statuses.stream()
