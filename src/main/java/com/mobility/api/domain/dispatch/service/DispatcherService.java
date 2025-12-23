@@ -1,8 +1,11 @@
 package com.mobility.api.domain.dispatch.service;
 
+import com.mobility.api.domain.dispatch.dto.DispatchDistanceProjection;
 import com.mobility.api.domain.dispatch.dto.response.DispatchCancelRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchDetailRes;
+import com.mobility.api.domain.dispatch.dto.response.DispatchListItemRes;
 import com.mobility.api.domain.dispatch.entity.Dispatch;
+import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
 import com.mobility.api.domain.dispatch.dto.response.DispatchAssignCompleteRes;
 import com.mobility.api.domain.transporter.entity.LocationHistory;
@@ -14,6 +17,9 @@ import com.mobility.api.global.response.ResultCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -103,6 +109,38 @@ public class DispatcherService {
 
         // 3. DTO 변환 및 반환
         return DispatchDetailRes.from(dispatch, distanceKm);
+    }
+
+    /**
+     * 기사용 배차 리스트 조회 (거리순 정렬 + 상태 필터링)
+     * @param transporterId 현재 로그인한 기사 ID
+     * @param statuses 필터링할 배차 상태 목록 (null이면 전체 조회)
+     * @return 거리순으로 정렬된 배차 리스트
+     */
+    public List<DispatchListItemRes> getDispatchListByDistance(Long transporterId, List<StatusType> statuses) {
+        // 1. 기사의 최신 위치 조회
+        LocationHistory latestLocation = locationRepository.findFirstByTransporter_IdOrderByIdDesc(transporterId)
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
+
+        // 2. 기사 위치 기준으로 배차를 거리순으로 조회 (상태 필터링 적용)
+        double lat = latestLocation.getLocation().getY();
+        double lon = latestLocation.getLocation().getX();
+
+        // StatusType enum을 String으로 변환
+        // 빈 리스트면 null로 전달하여 PostgreSQL IN 절 에러 방지
+        List<String> statusStrings = null;
+        if (statuses != null && !statuses.isEmpty()) {
+            statusStrings = statuses.stream()
+                    .map(StatusType::name)
+                    .collect(Collectors.toList());
+        }
+
+        List<DispatchDistanceProjection> projections = dispatchRepository.findDispatchesByDistance(lat, lon, statusStrings);
+
+        // 3. Projection -> DTO 변환
+        return projections.stream()
+                .map(DispatchListItemRes::from)
+                .collect(Collectors.toList());
     }
 
     /**
