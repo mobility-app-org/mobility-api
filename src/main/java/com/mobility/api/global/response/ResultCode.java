@@ -40,6 +40,14 @@ public enum ResultCode {
      * 4000번대 (사무실 관련)
      */
 
+    /**
+     * 5000번대 (배차 제안 관련)
+     */
+    OFFER_NOT_FOUND(HttpStatus.NOT_FOUND, 5001, "배차 제안을 찾을 수 없습니다."),
+    OFFER_ALREADY_RESPONDED(HttpStatus.CONFLICT, 5002, "이미 응답한 배차 제안입니다."),
+    OFFER_EXPIRED(HttpStatus.GONE, 5003, "만료된 배차 제안입니다."),
+    DISPATCH_ALREADY_ASSIGNED(HttpStatus.CONFLICT, 5006, "이미 다른 기사에게 할당된 배차입니다."),
+
     FIXME_FAIL(HttpStatus.NOT_FOUND, 9999, "임시 취소 응답 (수정 필요)"),
 
     /**

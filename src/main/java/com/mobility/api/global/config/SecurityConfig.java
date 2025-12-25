@@ -18,6 +18,13 @@ public class SecurityConfig {
             "/v3/api-docs/**"   // API 설계도(JSON)
     };
 
+    private static final String[] WEBSOCKET_URLS = {
+            "/ws/**",      // WebSocket handshake 엔드포인트
+            "/app/**",     // STOMP 발행 경로 (기사 → 서버)
+            "/queue/**",   // STOMP 구독 경로 (서버 → 기사, 개인)
+            "/topic/**"    // STOMP 구독 경로 (서버 → 전체, 브로드캐스트)
+    };
+
     /**
      * 'dev' 또는 'local' 프로필일 때 활성화되는 보안 설정
      * 프로필이 지정되지 않은 경우에도 기본으로 사용
@@ -44,6 +51,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/**").permitAll()
                         .requestMatchers(SWAGGER_URLS).permitAll()
+                        .requestMatchers(WEBSOCKET_URLS).permitAll()  // WebSocket 경로 허용
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요 (사실상 거의 없음)
                 );
         return http.build();

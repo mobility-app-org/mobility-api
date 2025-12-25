@@ -3,6 +3,7 @@ package com.mobility.api.domain.office.service;
 import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
+import com.mobility.api.domain.dispatch.service.AutoDispatchService;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
@@ -13,6 +14,7 @@ import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.ResultCode;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,9 +26,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OfficeService {
 
     private final DispatchRepository dispatchRepository;
+    private final AutoDispatchService autoDispatchService;
 
     public Page<GetAllDispatchRes> findAllDispatch(DispatchSearchDto searchDto, Pageable pageable) {
 
@@ -62,8 +66,17 @@ public class OfficeService {
         return dispatchPage.map(dispatch -> new GetAllDispatchRes(dispatch)); // DTO 변환
     }
 
+    @Transactional
     public void saveDispatch(CreateDispatchReq createDispatchReq) {
-        dispatchRepository.save(createDispatchReq.toEntity());
+        // 1. 배차 저장
+        Dispatch savedDispatch = dispatchRepository.save(createDispatchReq.toEntity());
+
+        log.info("[Office] 배차 등록 완료 - dispatchId: {}", savedDispatch.getId());
+
+        // 2. 자동 배차 알림 시작 (비동기)
+        autoDispatchService.startSequentialNotification(savedDispatch.getId());
+
+        log.info("[Office] 자동 배차 알림 트리거 완료 - dispatchId: {}", savedDispatch.getId());
     }
 
     @Transactional
