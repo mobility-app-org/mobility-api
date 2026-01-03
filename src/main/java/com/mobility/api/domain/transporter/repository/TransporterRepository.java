@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TransporterRepository extends JpaRepository<Transporter, Long> {
 
@@ -56,5 +57,7 @@ public interface TransporterRepository extends JpaRepository<Transporter, Long> 
             @Param("lat") double lat,
             @Param("lon") double lon
     );
+
+    Optional<Transporter> findByPhone(String username);
 
 }
