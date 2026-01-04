@@ -74,7 +74,7 @@ public class SecurityConfig {
      * - 나머지 모든 요청은 JWT 토큰 검사 등을 통해 인증을 요구해야 합니다.
      */
     @Bean
-    @Profile("prod")
+    @Profile({"prod", "docker"})
     public SecurityFilterChain prodSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
