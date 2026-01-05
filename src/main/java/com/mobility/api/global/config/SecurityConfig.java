@@ -85,6 +85,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/auth/**").permitAll() // 로그인 API 등은 허용
                         .requestMatchers("/health/**").permitAll() // ping 등 health-check 허용
+                        .requestMatchers(SWAGGER_URLS).permitAll()
+                        .requestMatchers(WEBSOCKET_URLS).permitAll()  // WebSocket 경로 허용
                         .requestMatchers("/error").permitAll() // (에러 내용을 보기 위함)
                         .requestMatchers("/api/**").authenticated() // 나머지 API는 인증 필요
                         .anyRequest().denyAll()
