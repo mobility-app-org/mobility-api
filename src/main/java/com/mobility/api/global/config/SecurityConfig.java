@@ -83,7 +83,7 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable())
 
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/auth/**").permitAll() // 로그인 API 등은 허용
+                        .requestMatchers("/api/v1/auth/**").permitAll() // 로그인 API 등은 허용
                         .requestMatchers("/health/**").permitAll() // ping 등 health-check 허용
                         .requestMatchers(SWAGGER_URLS).permitAll()
                         .requestMatchers(WEBSOCKET_URLS).permitAll()  // WebSocket 경로 허용
