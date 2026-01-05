@@ -1,16 +1,24 @@
 package com.mobility.api.global.config;
 
+import com.mobility.api.global.jwt.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String[] SWAGGER_URLS = {
             "/swagger-ui.html", // 메인 UI 페이지
@@ -50,10 +58,13 @@ public class SecurityConfig {
                 // 5. API 경로에 대한 접근 허용 설정
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/**").permitAll()
+                        .requestMatchers("/health/**").permitAll() // ping 등 health-check 허용
                         .requestMatchers(SWAGGER_URLS).permitAll()
                         .requestMatchers(WEBSOCKET_URLS).permitAll()  // WebSocket 경로 허용
+                        .requestMatchers("/error").permitAll() // (에러 내용을 보기 위함)
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요 (사실상 거의 없음)
-                );
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -63,7 +74,7 @@ public class SecurityConfig {
      * - 나머지 모든 요청은 JWT 토큰 검사 등을 통해 인증을 요구해야 합니다.
      */
     @Bean
-    @Profile("prod")
+    @Profile({"prod", "docker"})
     public SecurityFilterChain prodSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
@@ -73,12 +84,24 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/auth/**").permitAll() // 로그인 API 등은 허용
+                        .requestMatchers("/health/**").permitAll() // ping 등 health-check 허용
+                        .requestMatchers("/error").permitAll() // (에러 내용을 보기 위함)
                         .requestMatchers("/api/**").authenticated() // 나머지 API는 인증 필요
                         .anyRequest().denyAll()
-                );
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         // .addFilterBefore( ... JWT 인증 필터 추가 ...)
 
         return http.build();
     }
+
+    /**
+     * 비밀번호 암호화, 검증 Bean
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
 }
