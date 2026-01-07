@@ -2,18 +2,12 @@ package com.mobility.api.domain.auth.controller;
 
 import com.mobility.api.domain.auth.dto.response.TokenDto;
 import com.mobility.api.domain.auth.service.AuthService;
-import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
-import com.mobility.api.domain.office.dto.request.OfficeLoginReq;
-import com.mobility.api.domain.office.dto.request.OfficeSignupReq;
-import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
-import com.mobility.api.global.annotation.SwaggerPageable;
+import com.mobility.api.domain.auth.dto.request.OfficeLoginReq;
+import com.mobility.api.domain.auth.dto.request.OfficeSignupReq;
 import com.mobility.api.global.response.CommonResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "사무실 인증 관련 요청(/api/v1/auth/office/...)")

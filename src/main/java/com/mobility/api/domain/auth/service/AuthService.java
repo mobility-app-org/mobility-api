@@ -1,13 +1,17 @@
 package com.mobility.api.domain.auth.service;
 
+import com.mobility.api.domain.auth.dto.request.TransporterLoginReq;
+import com.mobility.api.domain.auth.dto.request.TransporterSignupReq;
 import com.mobility.api.domain.auth.dto.response.TokenDto;
-import com.mobility.api.domain.office.dto.request.OfficeLoginReq;
-import com.mobility.api.domain.office.dto.request.OfficeSignupReq;
+import com.mobility.api.domain.auth.dto.request.OfficeLoginReq;
+import com.mobility.api.domain.auth.dto.request.OfficeSignupReq;
 import com.mobility.api.domain.office.entity.Manager;
 import com.mobility.api.domain.office.entity.Office;
 import com.mobility.api.domain.office.enums.ManagerRole;
 import com.mobility.api.domain.office.repository.ManagerRepository;
 import com.mobility.api.domain.office.repository.OfficeRepository;
+import com.mobility.api.domain.transporter.entity.Transporter;
+import com.mobility.api.domain.transporter.repository.TransporterRepository;
 import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.jwt.JwtProvider;
 import com.mobility.api.global.response.ResultCode;
@@ -22,6 +26,7 @@ public class AuthService {
 
     private final ManagerRepository managerRepository;
     private final OfficeRepository officeRepository;
+    private final TransporterRepository transporterRepository;
 
     private final JwtProvider jwtProvider;           // 토큰 발급기
     private final PasswordEncoder passwordEncoder;   // 비밀번호 검사기
@@ -82,6 +87,45 @@ public class AuthService {
         // Subject: loginId (나중에 이걸로 DB 조회함)
         // Role: "ROLE_OFFICE" (일단 고정, 필요하면 manager.getRole().name() 사용)
         String accessToken = jwtProvider.createToken(manager.getLoginId(), "ROLE_OFFICE");
+
+        return new TokenDto(accessToken, "Bearer");
+    }
+
+    /**
+     * [기사] 회원가입
+     */
+    @Transactional
+    public void signupTransporter(TransporterSignupReq req) {
+        // 1. 전화번호 중복 검사
+        if (transporterRepository.existsByPhone(req.phone())) {
+            throw new GlobalException(ResultCode.FIXME_FAIL); // 이미 가입된 번호
+        }
+
+        // 2. 기사 정보 생성 및 저장
+        Transporter transporter = Transporter.builder()
+                .name(req.name())
+                .phone(req.phone())
+                .isAutoDispatch(req.isAutoDispatch())
+                .build();
+
+        transporterRepository.save(transporter);
+    }
+
+    /**
+     * [기사] 로그인 (전화번호만 일치하면 통과)
+     */
+    @Transactional
+    public TokenDto transporterLogin(TransporterLoginReq req) {
+        // 1. 전화번호로 기사 찾기
+        Transporter transporter = transporterRepository.findByPhone(req.phone())
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER)); // 가입되지 않은 기사
+
+        // 2. 비밀번호 검증 없음 (요구사항 반영: 전화번호만 맞으면 바로 로그인 처리)
+
+        // 3. 토큰 생성
+        // Subject: phone (기사는 ID 대신 전화번호를 식별자로 씀)
+        // Role: "ROLE_TRANSPORTER" (권한 분리)
+        String accessToken = jwtProvider.createToken(transporter.getPhone(), "ROLE_TRANSPORTER");
 
         return new TokenDto(accessToken, "Bearer");
     }

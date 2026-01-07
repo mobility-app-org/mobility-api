@@ -58,6 +58,10 @@ public interface TransporterRepository extends JpaRepository<Transporter, Long> 
             @Param("lon") double lon
     );
 
+    // 전화번호 중복 가입 체크용
+    boolean existsByPhone(String phoneNumber);
+
+    // 로그인 시 기사 조회용 (기사 id는 전화번호이므로 username을 받아서 phone을 조회함)
     Optional<Transporter> findByPhone(String username);
 
 }
