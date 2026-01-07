@@ -17,9 +17,25 @@ public record CreateDispatchReq(
         @NotBlank(message = "출발지가 입력되지 않았습니다.")
         String startLocation,       // 출발지
 
+        @Schema(description = "출발지 위도", example = "37.5547125")
+        @NotNull(message = "출발지 위도가 입력되지 않았습니다.")
+        double startLatitude,
+
+        @Schema(description = "출발지 경도", example = "37.5547125")
+        @NotNull(message = "출발지 경도가 입력되지 않았습니다.")
+        double startLongitude,
+
         @Schema(description = "도착지", example = "강원도")
         @NotBlank(message = "도착지가 입력되지 않았습니다.")
         String destinationLocation, // 도착지
+
+        @Schema(description = "도착지 위도", example = "37.5547125")
+        @NotNull(message = "도착지 위도가 입력되지 않았습니다.")
+        double destinationLatitude,
+
+        @Schema(description = "도착지 경도", example = "37.5547125")
+        @NotNull(message = "도착지 경도가 입력되지 않았습니다.")
+        double destinationLongitude,
 
         @Schema(description = "요금", example = "100000")
         @NotNull(message = "요금이 입력되지 않았습니다.")
@@ -48,7 +64,11 @@ public record CreateDispatchReq(
     public Dispatch toEntity() {
         return Dispatch.builder()
                 .startLocation(this.startLocation())
+                .startLatitude(this.startLatitude())
+                .startLongitude(this.startLongitude())
                 .destinationLocation(this.destinationLocation())
+                .destinationLatitude(this.destinationLatitude())
+                .destinationLongitude(this.destinationLongitude())
                 .charge(this.charge())
                 .clientPhoneNumber(this.clientPhoneNumber())
                 .status(StatusType.OPEN)
