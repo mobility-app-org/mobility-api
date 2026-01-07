@@ -1,4 +1,4 @@
-package com.mobility.api.domain.office.dto.request;
+package com.mobility.api.domain.auth.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
