@@ -11,8 +11,20 @@ public record UpdateDispatchReq(
         @Schema(description = "출발지", example = "서울 강남구")
         String startLocation,
 
+        @Schema(description = "출발지 위도", example = "37.5547125")
+        double startLatitude,
+
+        @Schema(description = "출발지 경도", example = "37.5547125")
+        double startLongitude,
+
         @Schema(description = "도착지", example = "경기 성남시")
         String destinationLocation,
+
+        @Schema(description = "도착지 위도", example = "37.5547125")
+        double destinationLatitude,
+
+        @Schema(description = "도착지 경도", example = "37.5547125")
+        double destinationLongitude,
 
         @Schema(description = "요금", example = "20000")
         Integer charge,
