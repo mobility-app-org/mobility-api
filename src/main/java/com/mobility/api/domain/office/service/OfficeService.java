@@ -8,6 +8,7 @@ import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
 import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
+import com.mobility.api.domain.office.dto.response.GetDispatchDetailRes;
 import com.mobility.api.global.enums.ApiResponseCode;
 import com.mobility.api.global.exception.BusinessException;
 import com.mobility.api.global.exception.GlobalException;
@@ -113,8 +114,17 @@ public class OfficeService {
 
         // TODO: dispatch.cancel() 같은 엔티티 메서드로 캡슐화
         dispatch.setStatus(StatusType.CANCELED);
+        dispatch.setCanceledAt(java.time.LocalDateTime.now());
 
         // @Transactional이 변경 감지(Dirty Checking)로 UPDATE
+    }
+
+    @Transactional(readOnly = true)
+    public GetDispatchDetailRes getDispatchDetail(Long dispatchId) {
+        Dispatch dispatch = dispatchRepository.findById(dispatchId)
+                .orElseThrow(() -> new BusinessException(ApiResponseCode.DISPATCH_NOT_FOUND));
+
+        return GetDispatchDetailRes.from(dispatch);
     }
 
 }

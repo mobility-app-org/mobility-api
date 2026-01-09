@@ -2,10 +2,12 @@ package com.mobility.api.domain.dispatch.entity;
 
 import com.mobility.api.domain.dispatch.enums.*;
 import com.mobility.api.domain.transporter.entity.Transporter;
+import com.mobility.api.global.entity.BaseEntity;
 import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.ResultCode;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
@@ -15,9 +17,9 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Slf4j
-public class Dispatch {
+public class Dispatch extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -67,7 +69,13 @@ public class Dispatch {
     @JoinColumn(name = "transporter_id")
     private Transporter transporter;
 
-    private LocalDateTime createdAt; // 생성일자
+    private String memo; // 메모
+
+    private LocalDateTime assignedAt; // 배차 할당 시간
+
+    private LocalDateTime completedAt; // 완료 시간
+
+    private LocalDateTime canceledAt; // 취소 시간
 
     // 기사 배차 시
     public void assignDispatch(Transporter transporter) {
@@ -79,6 +87,7 @@ public class Dispatch {
 
         this.transporter = transporter;
         this.status = StatusType.ASSIGNED;
+        this.assignedAt = LocalDateTime.now();
     }
 
     public void cancelDispatch(Transporter transporter) {
@@ -100,6 +109,7 @@ public class Dispatch {
         }
 
         this.status = StatusType.COMPLETED;
+        this.completedAt = LocalDateTime.now();
     }
 
     private void validateOwner(Transporter transporter) {
