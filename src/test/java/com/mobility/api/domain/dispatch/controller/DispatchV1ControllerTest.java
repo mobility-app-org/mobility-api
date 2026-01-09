@@ -5,9 +5,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
 import com.mobility.api.domain.dispatch.service.DispatcherService;
+import com.mobility.api.domain.office.repository.ManagerRepository;
 import com.mobility.api.domain.transporter.dto.response.TransporterMatchResponse;
 import com.mobility.api.domain.transporter.repository.TransporterRepository;
 import com.mobility.api.domain.transporter.service.TransporterService;
+import com.mobility.api.global.jwt.JwtProvider;
 import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.ResultCode;
 import org.junit.jupiter.api.DisplayName;
@@ -47,6 +49,12 @@ class DispatchV1ControllerTest {
 
     @MockitoBean
     private DispatcherService dispatcherService;
+
+    @MockitoBean
+    private ManagerRepository managerRepository;
+
+    @MockitoBean
+    private JwtProvider jwtProvider;
 
     @Test
     @DisplayName("[API] 배차 주변 기사 조회 - 성공 (200 OK)")

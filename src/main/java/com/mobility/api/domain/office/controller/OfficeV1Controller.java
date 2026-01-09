@@ -5,6 +5,7 @@ import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
 import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
+import com.mobility.api.domain.office.dto.response.GetDispatchDetailRes;
 import com.mobility.api.domain.office.service.OfficeService;
 import com.mobility.api.global.annotation.SwaggerPageable;
 import com.mobility.api.global.response.CommonResponse;
@@ -42,6 +43,22 @@ public class OfficeV1Controller {
             @Parameter(hidden = true) Pageable pageable  // 페이징/정렬용
     ) {
         return CommonResponse.success(officeService.findAllDispatch(searchDto, pageable));
+    }
+
+    /**
+     * <pre>
+     *     사무실 - 배차 상세 조회
+     * </pre>
+     *
+     * @param dispatchId
+     * @return
+     */
+    @Operation(summary = "배차 상세 조회", description = "")
+    @RequestMapping(path = "/dispatch/{dispatch_id}", method = RequestMethod.GET)
+    public CommonResponse<GetDispatchDetailRes> getDispatchDetail(
+            @PathVariable("dispatch_id") Long dispatchId
+    ) {
+        return CommonResponse.success(officeService.getDispatchDetail(dispatchId));
     }
 
     /**
