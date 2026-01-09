@@ -7,6 +7,7 @@ import com.mobility.api.domain.dispatch.service.AutoDispatchService;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
+import com.mobility.api.domain.office.dto.response.DispatchSummaryRes;
 import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.domain.office.dto.response.GetDispatchDetailRes;
 import com.mobility.api.global.enums.ApiResponseCode;
@@ -22,8 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -125,6 +125,26 @@ public class OfficeService {
                 .orElseThrow(() -> new BusinessException(ApiResponseCode.DISPATCH_NOT_FOUND));
 
         return GetDispatchDetailRes.from(dispatch);
+    }
+
+    @Transactional(readOnly = true)
+    public DispatchSummaryRes getDispatchSummary() {
+        List<Object[]> results = dispatchRepository.countByStatus();
+
+        // 모든 상태를 0으로 초기화
+        Map<StatusType, Long> statusCounts = new EnumMap<>(StatusType.class);
+        for (StatusType status : StatusType.values()) {
+            statusCounts.put(status, 0L);
+        }
+
+        // 조회 결과로 업데이트
+        for (Object[] row : results) {
+            StatusType status = (StatusType) row[0];
+            Long count = (Long) row[1];
+            statusCounts.put(status, count);
+        }
+
+        return DispatchSummaryRes.from(statusCounts);
     }
 
 }

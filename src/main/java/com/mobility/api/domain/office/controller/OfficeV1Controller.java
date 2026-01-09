@@ -4,6 +4,7 @@ import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
+import com.mobility.api.domain.office.dto.response.DispatchSummaryRes;
 import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.domain.office.dto.response.GetDispatchDetailRes;
 import com.mobility.api.domain.office.service.OfficeService;
@@ -59,6 +60,19 @@ public class OfficeV1Controller {
             @PathVariable("dispatch_id") Long dispatchId
     ) {
         return CommonResponse.success(officeService.getDispatchDetail(dispatchId));
+    }
+
+    /**
+     * <pre>
+     *     사무실 - 배차 상태별 카운트 조회
+     * </pre>
+     *
+     * @return 상태별 배차 개수
+     */
+    @Operation(summary = "배차 상태별 카운트 조회", description = "OPEN, ASSIGNED, COMPLETED, CANCELED 상태별 배차 개수를 조회합니다.")
+    @RequestMapping(path = "/dispatch/summary", method = RequestMethod.GET)
+    public CommonResponse<DispatchSummaryRes> getDispatchSummary() {
+        return CommonResponse.success(officeService.getDispatchSummary());
     }
 
     /**
