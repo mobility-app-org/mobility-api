@@ -4,6 +4,7 @@ import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
 import com.mobility.api.domain.dispatch.service.AutoDispatchService;
+import com.mobility.api.domain.transporter.repository.TransporterRepository;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
@@ -31,6 +32,7 @@ import java.util.*;
 public class OfficeService {
 
     private final DispatchRepository dispatchRepository;
+    private final TransporterRepository transporterRepository;
     private final AutoDispatchService autoDispatchService;
 
     public Page<GetAllDispatchRes> findAllDispatch(DispatchSearchDto searchDto, Pageable pageable) {
@@ -69,15 +71,34 @@ public class OfficeService {
 
     @Transactional
     public void saveDispatch(CreateDispatchReq createDispatchReq) {
-        // 1. 배차 저장
-        Dispatch savedDispatch = dispatchRepository.save(createDispatchReq.toEntity());
+        // 1. 주변 1km 내 자동배차 ON 기사 존재 여부 확인
+        boolean hasEligibleDrivers = transporterRepository.existsEligibleDriversWithinRadius(
+                createDispatchReq.startLatitude(),
+                createDispatchReq.startLongitude()
+        );
 
-        log.info("[Office] 배차 등록 완료 - dispatchId: {}", savedDispatch.getId());
+        // 2. 배차 엔티티 생성
+        Dispatch dispatch = createDispatchReq.toEntity();
 
-        // 2. 자동 배차 알림 시작 (비동기)
-        autoDispatchService.startSequentialNotification(savedDispatch.getId());
+        // 3. 적격 기사 유무에 따라 상태 결정
+        if (hasEligibleDrivers) {
+            // 주변에 자동배차 ON 기사가 있음 → HOLD 상태로 시작
+            dispatch.setStatus(StatusType.HOLD);
+            Dispatch savedDispatch = dispatchRepository.save(dispatch);
 
-        log.info("[Office] 자동 배차 알림 트리거 완료 - dispatchId: {}", savedDispatch.getId());
+            log.info("[Office] 배차 등록 완료 (HOLD) - dispatchId: {}, 주변 적격 기사 있음", savedDispatch.getId());
+
+            // 자동 배차 알림 시작 (비동기)
+            autoDispatchService.startSequentialNotification(savedDispatch.getId());
+
+            log.info("[Office] 자동 배차 알림 트리거 완료 - dispatchId: {}", savedDispatch.getId());
+        } else {
+            // 주변에 자동배차 ON 기사가 없음 → 바로 OPEN 상태
+            dispatch.setStatus(StatusType.OPEN);
+            Dispatch savedDispatch = dispatchRepository.save(dispatch);
+
+            log.info("[Office] 배차 등록 완료 (OPEN) - dispatchId: {}, 주변 적격 기사 없음", savedDispatch.getId());
+        }
     }
 
     @Transactional

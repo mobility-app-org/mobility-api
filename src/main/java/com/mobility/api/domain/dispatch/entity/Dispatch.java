@@ -80,8 +80,8 @@ public class Dispatch extends BaseEntity {
     // 기사 배차 시
     public void assignDispatch(Transporter transporter) {
 
-        // 1. 유효성 검증 : 이미 배차되어있는지 확인
-        if (this.status != StatusType.OPEN) {
+        // 1. 유효성 검증 : HOLD 또는 OPEN 상태에서만 배차 가능
+        if (this.status != StatusType.OPEN && this.status != StatusType.HOLD) {
             throw new GlobalException(ResultCode.DISPATCH_NOT_OPEN);
         }
 
