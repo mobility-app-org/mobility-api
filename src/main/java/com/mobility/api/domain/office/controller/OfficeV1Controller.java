@@ -6,8 +6,10 @@ import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
 import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.domain.office.service.OfficeService;
+import com.mobility.api.domain.transporter.dto.request.TransporterCreateReq;
 import com.mobility.api.global.annotation.SwaggerPageable;
 import com.mobility.api.global.response.CommonResponse;
+import com.mobility.api.global.security.PrincipalDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "사무실 관련 요청(/api/v1/office/...)")
@@ -106,6 +109,18 @@ public class OfficeV1Controller {
     public CommonResponse<String> getStatistics() {
 
         return CommonResponse.success("프론트 개발 후 작업 예정입니다.");
+    }
+
+    @RequestMapping(path = "/transporter", method = RequestMethod.POST)
+    public CommonResponse<String> createTransporter(
+            @RequestBody TransporterCreateReq req,
+            @AuthenticationPrincipal PrincipalDetails user // 👈 토큰에서 사용자 정보 추출
+    ) {
+
+        // userDetails.getUsername()에는 토큰에 넣었던 subject(loginId)가 들어있습니다.
+        officeService.createTransporter(req, user.getManager());
+
+        return CommonResponse.success("기사 등록 성공");
     }
 
 }
