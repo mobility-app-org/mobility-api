@@ -7,6 +7,7 @@ import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
 import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.domain.office.service.OfficeService;
 import com.mobility.api.domain.transporter.dto.request.TransporterCreateReq;
+import com.mobility.api.domain.transporter.dto.response.TransporterRes;
 import com.mobility.api.global.annotation.SwaggerPageable;
 import com.mobility.api.global.response.CommonResponse;
 import com.mobility.api.global.security.PrincipalDetails;
@@ -21,6 +22,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "사무실 관련 요청(/api/v1/office/...)")
 @RestController
@@ -121,6 +124,16 @@ public class OfficeV1Controller {
         officeService.createTransporter(req, user.getManager());
 
         return CommonResponse.success("기사 등록 성공");
+    }
+
+    @RequestMapping(path = "/transporter", method = RequestMethod.GET)
+    public CommonResponse<List<TransporterRes>> getMyTransporters(
+            @AuthenticationPrincipal PrincipalDetails user
+    ) {
+        // userDetails.getUsername() -> 로그인한 관리자의 ID
+        List<TransporterRes> result = officeService.getMyTransporters(user.getManager());
+
+        return CommonResponse.success(result);
     }
 
 }

@@ -11,6 +11,7 @@ import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.domain.office.entity.Manager;
 import com.mobility.api.domain.office.entity.Office;
 import com.mobility.api.domain.transporter.dto.request.TransporterCreateReq;
+import com.mobility.api.domain.transporter.dto.response.TransporterRes;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.domain.transporter.repository.TransporterRepository;
 import com.mobility.api.global.enums.ApiResponseCode;
@@ -150,6 +151,30 @@ public class OfficeService {
                 .build();
 
         transporterRepository.save(transporter);
+    }
+
+    /**
+     * 내 사무실 기사 목록 조회
+     * @param manager 로그인한 직원
+     */
+    @Transactional(readOnly = true) // 조회 전용이므로 readOnly 권장 (성능 향상)
+    public List<TransporterRes> getMyTransporters(Manager manager) {
+
+        // 1. 관리자(사장님) 찾기
+
+        // 2. 소속 사무실 확인
+        Office office = manager.getOffice();
+        if (office == null) {
+            throw new GlobalException(ResultCode.FIXME_FAIL);
+        }
+
+        // 3. 해당 사무실의 기사 리스트 조회
+        List<Transporter> transporters = transporterRepository.findAllByOffice(office);
+
+        // 4. Entity List -> DTO List 변환하여 반환
+        return transporters.stream()
+                .map(TransporterRes::from)
+                .toList();
     }
 
 }

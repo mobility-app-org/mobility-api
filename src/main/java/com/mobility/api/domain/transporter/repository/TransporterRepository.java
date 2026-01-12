@@ -1,5 +1,6 @@
 package com.mobility.api.domain.transporter.repository;
 
+import com.mobility.api.domain.office.entity.Office;
 import com.mobility.api.domain.transporter.dto.TransporterDistanceProjection;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -63,5 +64,8 @@ public interface TransporterRepository extends JpaRepository<Transporter, Long> 
 
     // 로그인 시 기사 조회용 (기사 id는 전화번호이므로 username을 받아서 phone을 조회함)
     Optional<Transporter> findByPhone(String username);
+
+    // 특정 사무실에 소속된 기사 목록 조회
+    List<Transporter> findAllByOffice(Office office);
 
 }
