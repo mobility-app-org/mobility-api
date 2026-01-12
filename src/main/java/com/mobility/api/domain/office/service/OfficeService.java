@@ -8,6 +8,12 @@ import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
 import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
+import com.mobility.api.domain.office.entity.Manager;
+import com.mobility.api.domain.office.entity.Office;
+import com.mobility.api.domain.transporter.dto.request.TransporterCreateReq;
+import com.mobility.api.domain.transporter.dto.response.TransporterRes;
+import com.mobility.api.domain.transporter.entity.Transporter;
+import com.mobility.api.domain.transporter.repository.TransporterRepository;
 import com.mobility.api.global.enums.ApiResponseCode;
 import com.mobility.api.global.exception.BusinessException;
 import com.mobility.api.global.exception.GlobalException;
@@ -30,6 +36,7 @@ import java.util.List;
 public class OfficeService {
 
     private final DispatchRepository dispatchRepository;
+    private final TransporterRepository transporterRepository;
     private final AutoDispatchService autoDispatchService;
 
     public Page<GetAllDispatchRes> findAllDispatch(DispatchSearchDto searchDto, Pageable pageable) {
@@ -115,6 +122,59 @@ public class OfficeService {
         dispatch.setStatus(StatusType.CANCELED);
 
         // @Transactional이 변경 감지(Dirty Checking)로 UPDATE
+    }
+
+    /**
+     * 기사 등록 (사장님이 호출)
+     * @param req 기사 정보
+     * @param manager 로그인한 직원 (토큰에서 추출)
+     */
+    @Transactional
+    public void createTransporter(TransporterCreateReq req, Manager manager) {
+
+        // 1. 현재 로그인한 사장님 조회
+
+        // 2. 사장님의 소속 사무실 가져오기
+        Office office = manager.getOffice();
+
+        // 3. 기사 전화번호 중복 검사
+        if (transporterRepository.existsByPhone(req.phone())) {
+            throw new GlobalException(ResultCode.FIXME_FAIL); // 이미 등록된 기사
+        }
+
+        // 4. 기사 저장 (사무실 정보 자동 주입)
+        Transporter transporter = Transporter.builder()
+                .name(req.name())
+                .phone(req.phone())
+                .isAutoDispatch(req.isAutoDispatch())
+                .office(office) // 직원의 사무실을 자동으로 넣어줌
+                .build();
+
+        transporterRepository.save(transporter);
+    }
+
+    /**
+     * 내 사무실 기사 목록 조회
+     * @param manager 로그인한 직원
+     */
+    @Transactional(readOnly = true) // 조회 전용이므로 readOnly 권장 (성능 향상)
+    public List<TransporterRes> getMyTransporters(Manager manager) {
+
+        // 1. 관리자(사장님) 찾기
+
+        // 2. 소속 사무실 확인
+        Office office = manager.getOffice();
+        if (office == null) {
+            throw new GlobalException(ResultCode.FIXME_FAIL);
+        }
+
+        // 3. 해당 사무실의 기사 리스트 조회
+        List<Transporter> transporters = transporterRepository.findAllByOffice(office);
+
+        // 4. Entity List -> DTO List 변환하여 반환
+        return transporters.stream()
+                .map(TransporterRes::from)
+                .toList();
     }
 
 }
