@@ -10,12 +10,14 @@ import com.mobility.api.domain.transporter.dto.response.TransporterMatchResponse
 import com.mobility.api.domain.transporter.repository.TransporterRepository;
 import com.mobility.api.domain.transporter.service.TransporterService;
 import com.mobility.api.global.jwt.JwtProvider;
+import com.mobility.api.global.security.CustomUserDetailsService;
 import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.ResultCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
@@ -55,6 +57,12 @@ class DispatchV1ControllerTest {
 
     @MockitoBean
     private JwtProvider jwtProvider;
+
+    @MockitoBean
+    private CustomUserDetailsService customUserDetailsService;
+
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
     @DisplayName("[API] 배차 주변 기사 조회 - 성공 (200 OK)")
