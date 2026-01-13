@@ -2,10 +2,12 @@ package com.mobility.api.domain.dispatch.entity;
 
 import com.mobility.api.domain.dispatch.enums.*;
 import com.mobility.api.domain.transporter.entity.Transporter;
+import com.mobility.api.global.entity.BaseEntity;
 import com.mobility.api.global.exception.GlobalException;
 import com.mobility.api.global.response.ResultCode;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
@@ -15,13 +17,15 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Slf4j
-public class Dispatch {
+public class Dispatch extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private String dispatchNumber; // 배차 번호 (예: 2024-0001)
 
     private String startLocation; // 출발지
 
@@ -67,18 +71,28 @@ public class Dispatch {
     @JoinColumn(name = "transporter_id")
     private Transporter transporter;
 
-    private LocalDateTime createdAt; // 생성일자
+    private String memo; // 메모
+
+    private LocalDateTime assignedAt; // 배차 할당 시간
+
+    private LocalDateTime completedAt; // 완료 시간
+
+    private LocalDateTime canceledAt; // 취소 시간
+
+    @Column(length = 500)
+    private String cancelReason; // 취소 사유 (최대 200자)
 
     // 기사 배차 시
     public void assignDispatch(Transporter transporter) {
 
-        // 1. 유효성 검증 : 이미 배차되어있는지 확인
-        if (this.status != StatusType.OPEN) {
+        // 1. 유효성 검증 : HOLD 또는 OPEN 상태에서만 배차 가능
+        if (this.status != StatusType.OPEN && this.status != StatusType.HOLD) {
             throw new GlobalException(ResultCode.DISPATCH_NOT_OPEN);
         }
 
         this.transporter = transporter;
         this.status = StatusType.ASSIGNED;
+        this.assignedAt = LocalDateTime.now();
     }
 
     public void cancelDispatch(Transporter transporter) {
@@ -100,6 +114,7 @@ public class Dispatch {
         }
 
         this.status = StatusType.COMPLETED;
+        this.completedAt = LocalDateTime.now();
     }
 
     private void validateOwner(Transporter transporter) {

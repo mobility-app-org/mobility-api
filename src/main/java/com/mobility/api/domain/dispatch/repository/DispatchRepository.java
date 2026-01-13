@@ -7,6 +7,8 @@ import jakarta.persistence.QueryHint;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
+import com.mobility.api.domain.dispatch.enums.StatusType;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -50,4 +52,16 @@ public interface DispatchRepository extends JpaRepository<Dispatch, Long>,
             @Param("lon") double lon,
             @Param("statuses") List<String> statuses
     );
+
+    /**
+     * 상태별 배차 카운트 조회
+     */
+    @Query("SELECT d.status, COUNT(d) FROM Dispatch d GROUP BY d.status")
+    List<Object[]> countByStatus();
+
+    /**
+     * 특정 사무실의 상태별 배차 카운트 조회
+     */
+    @Query("SELECT d.status, COUNT(d) FROM Dispatch d WHERE d.officeId = :officeId GROUP BY d.status")
+    List<Object[]> countByStatusAndOfficeId(@Param("officeId") Long officeId);
 }

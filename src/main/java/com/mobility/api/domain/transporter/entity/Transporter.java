@@ -1,10 +1,10 @@
 package com.mobility.api.domain.transporter.entity;
 
 import com.mobility.api.domain.office.entity.Office;
+import com.mobility.api.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.experimental.SuperBuilder;
 import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDateTime;
@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Table(name = "transporters")
-public class Transporter {
+public class Transporter extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,13 +39,4 @@ public class Transporter {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "office_id")    // DB 컬럼명: office_id
     private Office office;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "update_at")
-    private LocalDateTime updatedAt;
-
 }

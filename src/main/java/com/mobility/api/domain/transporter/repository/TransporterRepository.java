@@ -59,6 +59,23 @@ public interface TransporterRepository extends JpaRepository<Transporter, Long> 
             @Param("lon") double lon
     );
 
+    /**
+     * 1km 반경 내 자동배차 ON 기사 존재 여부 확인
+     */
+    @Query(value = """
+        SELECT COUNT(*) > 0
+        FROM transporters t
+        WHERE t.current_location IS NOT NULL
+          AND t.is_auto_dispatch = true
+          AND ST_DWithin(t.current_location::geography,
+                         ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography,
+                         1000)
+        """, nativeQuery = true)
+    boolean existsEligibleDriversWithinRadius(
+            @Param("lat") double lat,
+            @Param("lon") double lon
+    );
+
     // 전화번호 중복 가입 체크용
     boolean existsByPhone(String phoneNumber);
 

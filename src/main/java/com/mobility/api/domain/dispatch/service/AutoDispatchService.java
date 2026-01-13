@@ -85,8 +85,8 @@ public class AutoDispatchService {
                 dispatch = dispatchRepository.findById(dispatchId)
                         .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_DISPATCH));
 
-                if (dispatch.getStatus() != StatusType.OPEN) {
-                    log.info("[AutoDispatch] 배차가 더 이상 OPEN 상태가 아님. 종료 - dispatchId: {}, status: {}",
+                if (dispatch.getStatus() != StatusType.HOLD) {
+                    log.info("[AutoDispatch] 배차가 더 이상 HOLD 상태가 아님. 종료 - dispatchId: {}, status: {}",
                             dispatchId, dispatch.getStatus());
                     break;
                 }
@@ -124,8 +124,9 @@ public class AutoDispatchService {
                 }
             }
 
-            // 4. 10명 모두 거절/미응답
-            log.info("[AutoDispatch] 모든 기사가 거절/미응답. 배차는 OPEN 상태 유지 - dispatchId: {}", dispatchId);
+            // 4. 모든 기사가 거절/미응답 → HOLD에서 OPEN으로 변경
+            updateDispatchStatusToOpen(dispatchId);
+            log.info("[AutoDispatch] 모든 기사가 거절/미응답. 배차를 OPEN 상태로 변경 - dispatchId: {}", dispatchId);
 
         } catch (Exception e) {
             log.error("[AutoDispatch] 순차 알림 처리 중 오류 발생 - dispatchId: {}", dispatchId, e);
@@ -160,8 +161,8 @@ public class AutoDispatchService {
         Dispatch dispatch = dispatchRepository.findByIdWithPessimisticLock(offer.getDispatch().getId())
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_DISPATCH));
 
-        // 5. 배차 상태 확인 (이미 할당되었을 수 있음)
-        if (dispatch.getStatus() != StatusType.OPEN) {
+        // 5. 배차 상태 확인 (HOLD 상태에서만 수락 가능)
+        if (dispatch.getStatus() != StatusType.HOLD) {
             // Offer는 거절로 처리
             offer.reject();
             offerRepository.save(offer);
@@ -351,5 +352,19 @@ public class AutoDispatchService {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         return earthRadiusKm * c;
+    }
+
+    /**
+     * 배차 상태를 OPEN으로 변경 (모든 자동배차 대상 기사가 거절/타임아웃한 경우)
+     */
+    @Transactional
+    protected void updateDispatchStatusToOpen(Long dispatchId) {
+        dispatchRepository.findById(dispatchId).ifPresent(dispatch -> {
+            if (dispatch.getStatus() == StatusType.HOLD) {
+                dispatch.setStatus(StatusType.OPEN);
+                dispatchRepository.save(dispatch);
+                log.info("[AutoDispatch] 배차 상태 HOLD → OPEN 변경 완료 - dispatchId: {}", dispatchId);
+            }
+        });
     }
 }

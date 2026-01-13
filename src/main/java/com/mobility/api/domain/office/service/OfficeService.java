@@ -7,7 +7,9 @@ import com.mobility.api.domain.dispatch.service.AutoDispatchService;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
+import com.mobility.api.domain.office.dto.response.DispatchSummaryRes;
 import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
+import com.mobility.api.domain.office.dto.response.GetDispatchDetailRes;
 import com.mobility.api.domain.office.entity.Manager;
 import com.mobility.api.domain.office.entity.Office;
 import com.mobility.api.domain.transporter.dto.request.TransporterCreateReq;
@@ -27,8 +29,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -75,15 +76,34 @@ public class OfficeService {
 
     @Transactional
     public void saveDispatch(CreateDispatchReq createDispatchReq) {
-        // 1. 배차 저장
-        Dispatch savedDispatch = dispatchRepository.save(createDispatchReq.toEntity());
+        // 1. 주변 1km 내 자동배차 ON 기사 존재 여부 확인
+        boolean hasEligibleDrivers = transporterRepository.existsEligibleDriversWithinRadius(
+                createDispatchReq.startLatitude(),
+                createDispatchReq.startLongitude()
+        );
 
-        log.info("[Office] 배차 등록 완료 - dispatchId: {}", savedDispatch.getId());
+        // 2. 배차 엔티티 생성
+        Dispatch dispatch = createDispatchReq.toEntity();
 
-        // 2. 자동 배차 알림 시작 (비동기)
-        autoDispatchService.startSequentialNotification(savedDispatch.getId());
+        // 3. 적격 기사 유무에 따라 상태 결정
+        if (hasEligibleDrivers) {
+            // 주변에 자동배차 ON 기사가 있음 → HOLD 상태로 시작
+            dispatch.setStatus(StatusType.HOLD);
+            Dispatch savedDispatch = dispatchRepository.save(dispatch);
 
-        log.info("[Office] 자동 배차 알림 트리거 완료 - dispatchId: {}", savedDispatch.getId());
+            log.info("[Office] 배차 등록 완료 (HOLD) - dispatchId: {}, 주변 적격 기사 있음", savedDispatch.getId());
+
+            // 자동 배차 알림 시작 (비동기)
+            autoDispatchService.startSequentialNotification(savedDispatch.getId());
+
+            log.info("[Office] 자동 배차 알림 트리거 완료 - dispatchId: {}", savedDispatch.getId());
+        } else {
+            // 주변에 자동배차 ON 기사가 없음 → 바로 OPEN 상태
+            dispatch.setStatus(StatusType.OPEN);
+            Dispatch savedDispatch = dispatchRepository.save(dispatch);
+
+            log.info("[Office] 배차 등록 완료 (OPEN) - dispatchId: {}, 주변 적격 기사 없음", savedDispatch.getId());
+        }
     }
 
     @Transactional
@@ -120,8 +140,37 @@ public class OfficeService {
 
         // TODO: dispatch.cancel() 같은 엔티티 메서드로 캡슐화
         dispatch.setStatus(StatusType.CANCELED);
+        dispatch.setCanceledAt(java.time.LocalDateTime.now());
 
         // @Transactional이 변경 감지(Dirty Checking)로 UPDATE
+    }
+
+    @Transactional(readOnly = true)
+    public GetDispatchDetailRes getDispatchDetail(Long dispatchId) {
+        Dispatch dispatch = dispatchRepository.findById(dispatchId)
+                .orElseThrow(() -> new BusinessException(ApiResponseCode.DISPATCH_NOT_FOUND));
+
+        return GetDispatchDetailRes.from(dispatch);
+    }
+
+    @Transactional(readOnly = true)
+    public DispatchSummaryRes getDispatchSummary() {
+        List<Object[]> results = dispatchRepository.countByStatus();
+
+        // 모든 상태를 0으로 초기화
+        Map<StatusType, Long> statusCounts = new EnumMap<>(StatusType.class);
+        for (StatusType status : StatusType.values()) {
+            statusCounts.put(status, 0L);
+        }
+
+        // 조회 결과로 업데이트
+        for (Object[] row : results) {
+            StatusType status = (StatusType) row[0];
+            Long count = (Long) row[1];
+            statusCounts.put(status, count);
+        }
+
+        return DispatchSummaryRes.from(statusCounts);
     }
 
     /**
