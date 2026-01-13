@@ -1,10 +1,13 @@
 package com.mobility.api.domain.transporter.entity;
 
+import com.mobility.api.domain.office.entity.Office;
 import com.mobility.api.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.locationtech.jts.geom.Point;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -33,4 +36,7 @@ public class Transporter extends BaseEntity {
     @Column(name = "is_auto_dispatch")
     private boolean isAutoDispatch;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "office_id")    // DB 컬럼명: office_id
+    private Office office;
 }
