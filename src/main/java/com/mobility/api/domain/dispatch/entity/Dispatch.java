@@ -25,6 +25,8 @@ public class Dispatch extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String dispatchNumber; // 배차 번호 (예: 2024-0001)
+
     private String startLocation; // 출발지
 
     private double startLatitude; // 출발지 위도
@@ -76,6 +78,9 @@ public class Dispatch extends BaseEntity {
     private LocalDateTime completedAt; // 완료 시간
 
     private LocalDateTime canceledAt; // 취소 시간
+
+    @Column(length = 500)
+    private String cancelReason; // 취소 사유 (최대 200자)
 
     // 기사 배차 시
     public void assignDispatch(Transporter transporter) {
