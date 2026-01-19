@@ -12,6 +12,7 @@ import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.domain.office.dto.response.GetDispatchDetailRes;
 import com.mobility.api.domain.office.entity.Manager;
 import com.mobility.api.domain.office.entity.Office;
+import com.mobility.api.domain.transporter.TransporterStatus;
 import com.mobility.api.domain.transporter.dto.request.TransporterCreateReq;
 import com.mobility.api.domain.transporter.dto.response.TransporterRes;
 import com.mobility.api.domain.transporter.entity.Transporter;
@@ -224,6 +225,33 @@ public class OfficeService {
         return transporters.stream()
                 .map(TransporterRes::from)
                 .toList();
+    }
+
+    @Transactional
+    public void changeTransporterStatus(Long transporterId, TransporterStatus status, Manager manager) {
+
+        // 1. 기사(Transporter) 조회
+        Transporter transporter = transporterRepository.findById(transporterId)
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_TRANSPORTER)); // 에러코드 필요
+
+        // 2. [권한 검증] 사장님네 사무실 기사가 맞는지 확인 ⭐️
+        // 사장님의 사무실과 기사의 사무실 ID가 다르면 에러!
+        Office managerOffice = manager.getOffice();
+        Office transporterOffice = transporter.getOffice();
+
+        // (Null 체크: 혹시 모를 데이터 무결성 문제 방지)
+        if (managerOffice == null || transporterOffice == null) {
+            throw new GlobalException(ResultCode.NOT_FOUND_OFFICE);
+        }
+
+        // ID 비교
+        if (!managerOffice.getId().equals(transporterOffice.getId())) {
+            throw new GlobalException(ResultCode.UNAUTHORIZED_ACCESS);
+        }
+
+        // 3. 상태 변경 (Dirty Checking)
+        transporter.changeStatus(status);
+
     }
 
 }

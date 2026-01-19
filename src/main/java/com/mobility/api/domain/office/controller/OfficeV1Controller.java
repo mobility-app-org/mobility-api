@@ -9,6 +9,7 @@ import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.domain.office.dto.response.GetDispatchDetailRes;
 import com.mobility.api.domain.office.service.OfficeService;
 import com.mobility.api.domain.transporter.dto.request.TransporterCreateReq;
+import com.mobility.api.domain.transporter.dto.request.TransporterStatusUpdateReq;
 import com.mobility.api.domain.transporter.dto.response.TransporterRes;
 import com.mobility.api.global.annotation.SwaggerPageable;
 import com.mobility.api.global.response.CommonResponse;
@@ -145,6 +146,15 @@ public class OfficeV1Controller {
         return CommonResponse.success("프론트 개발 후 작업 예정입니다.");
     }
 
+    /**
+     * <pre>
+     *     기사 등록
+     * </pre>
+     * @param req
+     * @param user
+     * @return
+     */
+    @Operation(summary = "기사 등록", description = "")
     @RequestMapping(path = "/transporter", method = RequestMethod.POST)
     public CommonResponse<String> createTransporter(
             @RequestBody TransporterCreateReq req,
@@ -157,6 +167,14 @@ public class OfficeV1Controller {
         return CommonResponse.success("기사 등록 성공");
     }
 
+    /**
+     * <pre>
+     *     기사 리스트 조회
+     * </pre>
+     * @param user
+     * @return
+     */
+    @Operation(summary = "기사 리스트 조회", description = "")
     @RequestMapping(path = "/transporter", method = RequestMethod.GET)
     public CommonResponse<List<TransporterRes>> getMyTransporters(
             @AuthenticationPrincipal PrincipalDetails user
@@ -166,5 +184,32 @@ public class OfficeV1Controller {
 
         return CommonResponse.success(result);
     }
+
+    /**
+     * <pre>
+     *     기사 상태 변경
+     * </pre>
+     * @param user
+     * @return
+     */
+    @Operation(summary = "기사 상태 변경", description = "")
+    @RequestMapping(path = "/transporter/{transporterId}/status", method = RequestMethod.PATCH)
+    public CommonResponse<Integer> changeTransporterStatus(
+            @AuthenticationPrincipal PrincipalDetails user,
+            @PathVariable Long transporterId,
+            @RequestBody TransporterStatusUpdateReq req
+    ) {
+
+        officeService.changeTransporterStatus(
+                transporterId,
+                req.status(),
+                user.getManager()
+        );
+
+
+        return CommonResponse.success(0);
+    }
+
+
 
 }

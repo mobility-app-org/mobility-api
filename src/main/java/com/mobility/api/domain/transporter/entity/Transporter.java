@@ -2,6 +2,7 @@ package com.mobility.api.domain.transporter.entity;
 
 import com.mobility.api.domain.office.entity.Office;
 import com.mobility.api.global.entity.BaseEntity;
+import com.mobility.api.domain.transporter.TransporterStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -36,7 +37,16 @@ public class Transporter extends BaseEntity {
     @Column(name = "is_auto_dispatch")
     private boolean isAutoDispatch;
 
+    // 상태 필드 (기본값: PENDING)
+    @Enumerated(EnumType.STRING)
+    private TransporterStatus status = TransporterStatus.PENDING;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "office_id")    // DB 컬럼명: office_id
     private Office office;
+
+    // 상태 변경 편의 메서드 (Dirty Checking용)
+    public void changeStatus(TransporterStatus newStatus) {
+        this.status = newStatus;
+    }
 }
