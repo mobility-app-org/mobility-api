@@ -5,6 +5,10 @@ server:
 spring:
   # (DB 접속 정보는 docker-compose.yml에서 주입되므로 여기엔 불필요)
 
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+
   jpa:
     hibernate:
       # (주의!) EC2 운영 환경에서는 'validate' 또는 'none'을 권장
