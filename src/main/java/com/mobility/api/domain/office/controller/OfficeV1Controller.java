@@ -1,6 +1,7 @@
 package com.mobility.api.domain.office.controller;
 
 import com.mobility.api.domain.dispatch.entity.Dispatch;
+import com.mobility.api.domain.office.dto.request.CancelDispatchReq;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
@@ -91,9 +92,11 @@ public class OfficeV1Controller {
     @Operation(summary = "배차 등록", description = "")
     @RequestMapping(path = "/dispatch", method = RequestMethod.POST)
     public CommonResponse<Object> createDispatch(
+            @AuthenticationPrincipal PrincipalDetails user,
             @Valid @RequestBody CreateDispatchReq createDispatchReq
     ) {
-        officeService.saveDispatch(createDispatchReq);
+
+        officeService.saveDispatch(createDispatchReq, user.getManager());
 
         return CommonResponse.success(null);
     }
@@ -109,6 +112,7 @@ public class OfficeV1Controller {
     @Operation(summary = "배차 수정", description = "")
     @RequestMapping(path = "/dispatch/{dispatch_id}", method = RequestMethod.PATCH)
     public CommonResponse<Dispatch> updateDispatch(
+            @AuthenticationPrincipal PrincipalDetails user,
             @PathVariable("dispatch_id") Long dispatchId,
             @RequestBody UpdateDispatchReq updateDispatchReq
     ) {
@@ -126,9 +130,11 @@ public class OfficeV1Controller {
     @Operation(summary = "배차 취소 (삭제)", description = "")
     @RequestMapping(path = "/dispatch-cancel/{dispatch_id}", method = RequestMethod.POST)
     public CommonResponse<Object> cancelDispatch(
-            @PathVariable("dispatch_id") Long dispatchId
+            @AuthenticationPrincipal PrincipalDetails user,
+            @PathVariable("dispatch_id") Long dispatchId,
+            @RequestBody CancelDispatchReq req
     ) {
-        officeService.cancelDispatch(dispatchId);
+        officeService.cancelDispatch(dispatchId, req, user.getManager());
         return CommonResponse.success(null); // FIXME return값 수정
     }
 

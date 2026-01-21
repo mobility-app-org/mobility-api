@@ -4,6 +4,7 @@ import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
 import com.mobility.api.domain.dispatch.service.AutoDispatchService;
+import com.mobility.api.domain.office.dto.request.CancelDispatchReq;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
@@ -76,7 +77,7 @@ public class OfficeService {
     }
 
     @Transactional
-    public void saveDispatch(CreateDispatchReq createDispatchReq) {
+    public void saveDispatch(CreateDispatchReq createDispatchReq, Manager manager) {
         // 1. 주변 1km 내 자동배차 ON 기사 존재 여부 확인
         boolean hasEligibleDrivers = transporterRepository.existsEligibleDriversWithinRadius(
                 createDispatchReq.startLatitude(),
@@ -85,6 +86,12 @@ public class OfficeService {
 
         // 2. 배차 엔티티 생성
         Dispatch dispatch = createDispatchReq.toEntity();
+
+        if(manager == null || manager.getOffice() == null) {
+            throw new GlobalException(ResultCode.NOT_FOUND_OFFICE);
+        }
+
+        dispatch.setOfficeId(manager.getOffice().getId());
 
         // 3. 적격 기사 유무에 따라 상태 결정
         if (hasEligibleDrivers) {
@@ -128,7 +135,7 @@ public class OfficeService {
     }
 
     @Transactional
-    public void cancelDispatch(Long dispatchId) { // <- 메서드 이름도 delete -> cancel로 변경
+    public void cancelDispatch(Long dispatchId, CancelDispatchReq req, Manager user) { // <- 메서드 이름도 delete -> cancel로 변경
 
         // 엔티티 조회
         Dispatch dispatch = dispatchRepository.findById(dispatchId)
@@ -141,6 +148,7 @@ public class OfficeService {
 
         // TODO: dispatch.cancel() 같은 엔티티 메서드로 캡슐화
         dispatch.setStatus(StatusType.CANCELED);
+        dispatch.setCancelReason(req.cancelReason());
         dispatch.setCanceledAt(java.time.LocalDateTime.now());
 
         // @Transactional이 변경 감지(Dirty Checking)로 UPDATE
