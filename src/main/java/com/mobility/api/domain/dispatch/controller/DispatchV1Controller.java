@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Dispatch Matching", description = "배차 관련 API")
+@Tag(name = "배차 관련 API (/api/v1/dispatch)")
 @RestController
 @RequestMapping("/api/v1/dispatch")
 @RequiredArgsConstructor
