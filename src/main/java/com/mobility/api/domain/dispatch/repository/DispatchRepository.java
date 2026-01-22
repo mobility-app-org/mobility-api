@@ -44,7 +44,7 @@ public interface DispatchRepository extends JpaRepository<Dispatch, Long>,
                d.toll_type as tollType
         FROM dispatch d
         WHERE d.active = true
-          AND (:statuses IS NULL OR d.status IN (:statuses))
+          AND (CAST(:statuses AS text[]) IS NULL OR d.status = ANY(CAST(:statuses AS text[])))
         ORDER BY distanceInMeters ASC
         """, nativeQuery = true)
     List<DispatchDistanceProjection> findDispatchesByDistance(
