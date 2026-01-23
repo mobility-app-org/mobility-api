@@ -268,10 +268,16 @@ public class OfficeService {
                         org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"))
         ).getContent();
 
-        // 각 배차를 피드 DTO로 변환
-        return recentDispatches.stream()
-                .filter(dispatch -> dispatch.getStatus() != StatusType.HOLD) // HOLD 상태 제외
-                .map(dispatch -> {
+        // HOLD 상태 제외 후 리스트로 변환
+        List<Dispatch> filteredDispatches = recentDispatches.stream()
+                .filter(dispatch -> dispatch.getStatus() != StatusType.HOLD)
+                .toList();
+
+        // 각 배차를 피드 DTO로 변환 (연번 부여)
+        return java.util.stream.IntStream.range(0, filteredDispatches.size())
+                .mapToObj(index -> {
+                    Dispatch dispatch = filteredDispatches.get(index);
+                    String feedId = String.format("feed-%02d", index + 1); // feed-01, feed-02, ...
                     String type = dispatch.getStatus().name().toLowerCase();
                     String transporterName = (dispatch.getTransporter() != null) ? dispatch.getTransporter().getName() : null;
                     String dispatchNumberDisplay = (dispatch.getDispatchNumber() != null) ? "#" + dispatch.getDispatchNumber() : "#" + dispatch.getId();
@@ -295,7 +301,7 @@ public class OfficeService {
                     };
 
                     return DispatchFeedRes.builder()
-                            .id(type + "-" + dispatch.getId())
+                            .id(feedId)
                             .type(type)
                             .dispatchId(dispatch.getId())
                             .dispatchNumber(dispatch.getDispatchNumber())
