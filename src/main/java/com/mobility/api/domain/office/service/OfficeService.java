@@ -7,6 +7,7 @@ import com.mobility.api.domain.dispatch.service.AutoDispatchService;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
+import com.mobility.api.domain.office.dto.response.DispatchFeedRes;
 import com.mobility.api.domain.office.dto.response.DispatchSummaryRes;
 import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.domain.office.dto.response.GetDispatchDetailRes;
@@ -252,6 +253,58 @@ public class OfficeService {
         // 3. 상태 변경 (Dirty Checking)
         transporter.changeStatus(status);
 
+    }
+
+    /**
+     * 대시보드 실시간 피드 조회
+     * @param limit 조회 개수 (기본: 20)
+     * @return 최근 배차 이벤트 피드 목록
+     */
+    @Transactional(readOnly = true)
+    public List<DispatchFeedRes> getDispatchFeed(Integer limit) {
+        // 최근 배차 조회 (HOLD 상태 제외, createdAt 기준 내림차순)
+        List<Dispatch> recentDispatches = dispatchRepository.findAll(
+                org.springframework.data.domain.PageRequest.of(0, limit,
+                        org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"))
+        ).getContent();
+
+        // 각 배차를 피드 DTO로 변환
+        return recentDispatches.stream()
+                .filter(dispatch -> dispatch.getStatus() != StatusType.HOLD) // HOLD 상태 제외
+                .map(dispatch -> {
+                    String type = dispatch.getStatus().name().toLowerCase();
+                    String transporterName = (dispatch.getTransporter() != null) ? dispatch.getTransporter().getName() : null;
+                    String dispatchNumberDisplay = (dispatch.getDispatchNumber() != null) ? "#" + dispatch.getDispatchNumber() : "#" + dispatch.getId();
+
+                    // 상태별 타임스탬프 선택
+                    java.time.LocalDateTime timestamp = switch (dispatch.getStatus()) {
+                        case OPEN -> dispatch.getCreatedAt();
+                        case ASSIGNED -> dispatch.getAssignedAt();
+                        case COMPLETED -> dispatch.getCompletedAt();
+                        case CANCELED -> dispatch.getCanceledAt();
+                        default -> dispatch.getCreatedAt();
+                    };
+
+                    // 상태별 메시지 생성
+                    String message = switch (dispatch.getStatus()) {
+                        case OPEN -> "배차 " + dispatchNumberDisplay + "가 등록되었습니다";
+                        case ASSIGNED -> transporterName + " 기사가 콜 " + dispatchNumberDisplay + "을 배차 받았습니다";
+                        case COMPLETED -> transporterName + " 기사가 콜 " + dispatchNumberDisplay + "을 완료했습니다";
+                        case CANCELED -> "배차 " + dispatchNumberDisplay + "이 취소되었습니다";
+                        default -> "배차 " + dispatchNumberDisplay;
+                    };
+
+                    return DispatchFeedRes.builder()
+                            .id(type + "-" + dispatch.getId())
+                            .type(type)
+                            .dispatchId(dispatch.getId())
+                            .dispatchNumber(dispatch.getDispatchNumber())
+                            .transporterName(transporterName)
+                            .message(message)
+                            .timestamp(timestamp)
+                            .build();
+                })
+                .toList();
     }
 
 }

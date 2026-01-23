@@ -4,6 +4,7 @@ import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
+import com.mobility.api.domain.office.dto.response.DispatchFeedRes;
 import com.mobility.api.domain.office.dto.response.DispatchSummaryRes;
 import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.domain.office.dto.response.GetDispatchDetailRes;
@@ -80,6 +81,23 @@ public class OfficeV1Controller {
     @RequestMapping(path = "/dispatch/summary", method = RequestMethod.GET)
     public CommonResponse<DispatchSummaryRes> getDispatchSummary() {
         return CommonResponse.success(officeService.getDispatchSummary());
+    }
+
+    /**
+     * <pre>
+     *     사무실 - 대시보드 실시간 피드 조회
+     * </pre>
+     *
+     * @param limit 조회 개수 (기본: 20)
+     * @return 최근 배차 이벤트 피드 목록
+     */
+    @Operation(summary = "대시보드 실시간 피드 조회", description = "최근 배차 이벤트(open, assigned, completed, canceled) 목록을 조회합니다. HOLD 상태는 제외됩니다.")
+    @RequestMapping(path = "/dispatch/feed", method = RequestMethod.GET)
+    public CommonResponse<List<DispatchFeedRes>> getDispatchFeed(
+            @Parameter(description = "조회 개수", example = "20")
+            @RequestParam(required = false, defaultValue = "20") Integer limit
+    ) {
+        return CommonResponse.success(officeService.getDispatchFeed(limit));
     }
 
     /**
@@ -206,10 +224,7 @@ public class OfficeV1Controller {
                 user.getManager()
         );
 
-
         return CommonResponse.success(0);
     }
-
-
 
 }
