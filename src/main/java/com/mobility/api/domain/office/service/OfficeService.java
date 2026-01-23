@@ -262,8 +262,8 @@ public class OfficeService {
      */
     @Transactional(readOnly = true)
     public List<DispatchFeedRes> getDispatchFeed(Integer limit) {
-        // 최근 배차 조회 (HOLD 상태 제외, createdAt 기준 내림차순)
-        List<Dispatch> recentDispatches = dispatchRepository.findAll(
+        // 최근 배차 조회 (Transporter와 Fetch Join으로 N+1 문제 해결, createdAt 기준 내림차순)
+        List<Dispatch> recentDispatches = dispatchRepository.findAllWithTransporter(
                 org.springframework.data.domain.PageRequest.of(0, limit,
                         org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"))
         ).getContent();
