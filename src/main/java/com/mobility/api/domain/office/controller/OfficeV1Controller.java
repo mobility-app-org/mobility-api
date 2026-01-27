@@ -96,16 +96,21 @@ public class OfficeV1Controller {
             description = """
                     최근 배차 이벤트를 시간순으로 조회합니다.
 
-                    **피드 타입:**
-                    - `open`: 배차 등록
-                    - `assigned`: 배차 할당 (기사 배정)
+                    **반환되는 배차 상태 (4가지):**
+                    - `open`: 배차 등록 (대기 중)
+                    - `assigned`: 배차 할당 (기사 배정 완료)
                     - `completed`: 운송 완료
                     - `canceled`: 배차 취소
 
+                    **제외되는 상태:**
+                    - `HOLD`: 자동배차 진행 중 상태는 요구사항에 따라 피드에서 제외됩니다.
+                      (HOLD는 임시 상태로, 최대 50초 이내에 OPEN 또는 ASSIGNED로 전환됨)
+
                     **특징:**
-                    - HOLD 상태(자동배차 진행 중)는 제외됩니다.
+                    - 현재 로그인한 사무실의 배차만 조회됩니다 (officeId 필터링)
                     - 최신순 정렬 (createdAt DESC)
                     - Transporter 정보 포함 (N+1 최적화 적용)
+                    - transporterName은 assigned/completed 타입에만 값이 있고, open/canceled는 null
 
                     **응답 예시:**
                     ```json
@@ -120,6 +125,15 @@ public class OfficeV1Controller {
                           "transporterName": "김철수",
                           "message": "김철수 기사가 콜 #2024-0001을 배차 받았습니다",
                           "timestamp": "2024-01-15T10:32:00"
+                        },
+                        {
+                          "id": "feed-02",
+                          "type": "open",
+                          "dispatchId": 124,
+                          "dispatchNumber": "2024-0002",
+                          "transporterName": null,
+                          "message": "배차 #2024-0002가 등록되었습니다",
+                          "timestamp": "2024-01-15T10:30:00"
                         }
                       ]
                     }
