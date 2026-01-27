@@ -4,6 +4,7 @@ import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
+import com.mobility.api.domain.office.dto.response.DispatchFeedRes;
 import com.mobility.api.domain.office.dto.response.DispatchSummaryRes;
 import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
 import com.mobility.api.domain.office.dto.response.GetDispatchDetailRes;
@@ -80,6 +81,67 @@ public class OfficeV1Controller {
     @RequestMapping(path = "/dispatch/summary", method = RequestMethod.GET)
     public CommonResponse<DispatchSummaryRes> getDispatchSummary() {
         return CommonResponse.success(officeService.getDispatchSummary());
+    }
+
+    /**
+     * <pre>
+     *     사무실 - 대시보드 실시간 피드 조회
+     * </pre>
+     *
+     * @param limit 조회 개수 (기본: 20)
+     * @return 최근 배차 이벤트 피드 목록
+     */
+    @Operation(
+            summary = "대시보드 실시간 피드 조회",
+            description = """
+                    최근 배차 이벤트를 시간순으로 조회합니다.
+
+                    **피드 타입:**
+                    - `open`: 배차 등록
+                    - `assigned`: 배차 할당 (기사 배정)
+                    - `completed`: 운송 완료
+                    - `canceled`: 배차 취소
+
+                    **특징:**
+                    - HOLD 상태(자동배차 진행 중)는 제외됩니다.
+                    - 최신순 정렬 (createdAt DESC)
+                    - Transporter 정보 포함 (N+1 최적화 적용)
+
+                    **응답 예시:**
+                    ```json
+                    {
+                      "code": "SUCCESS",
+                      "data": [
+                        {
+                          "id": "feed-01",
+                          "type": "assigned",
+                          "dispatchId": 123,
+                          "dispatchNumber": "2024-0001",
+                          "transporterName": "김철수",
+                          "message": "김철수 기사가 콜 #2024-0001을 배차 받았습니다",
+                          "timestamp": "2024-01-15T10:32:00"
+                        }
+                      ]
+                    }
+                    ```
+                    """
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공"
+            )
+    })
+    @RequestMapping(path = "/dispatch/feed", method = RequestMethod.GET)
+    public CommonResponse<List<DispatchFeedRes>> getDispatchFeed(
+            @Parameter(
+                    description = "조회할 피드 개수 (기본값: 20, 최대 권장: 100)",
+                    example = "20",
+                    required = false
+            )
+            @RequestParam(required = false, defaultValue = "20") Integer limit
+    ) {
+        return CommonResponse.success(officeService.getDispatchFeed(limit));
     }
 
     /**
@@ -206,10 +268,7 @@ public class OfficeV1Controller {
                 user.getManager()
         );
 
-
         return CommonResponse.success(0);
     }
-
-
 
 }
