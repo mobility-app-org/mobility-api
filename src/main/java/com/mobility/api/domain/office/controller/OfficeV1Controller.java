@@ -139,9 +139,10 @@ public class OfficeV1Controller {
                     example = "20",
                     required = false
             )
-            @RequestParam(required = false, defaultValue = "20") Integer limit
+            @RequestParam(required = false, defaultValue = "20") Integer limit,
+            @AuthenticationPrincipal PrincipalDetails user
     ) {
-        return CommonResponse.success(officeService.getDispatchFeed(limit));
+        return CommonResponse.success(officeService.getDispatchFeed(limit, user.getManager()));
     }
 
     /**
