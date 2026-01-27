@@ -37,6 +37,7 @@ public enum ResultCode {
     TRANSPORTER_LOCATION_SAVE_SUCCESS(HttpStatus.OK, 3001, "기사 위도 경도 정보가 저장되었습니다"),
     NOT_FOUND_TRANSPORTER(HttpStatus.NOT_FOUND, 3002, "기사 정보를 찾을 수 없습니다."),
     UNAUTHORIZED_ACCESS(HttpStatus.NOT_FOUND, 3003, "해당 기사 수정 권한이 없습니다."),
+    TRANSPORTER_ALREADY_DISPATCHED(HttpStatus.CONFLICT, 3004, "이미 배차중인 오더가 있습니다."),
 
     /**
      * 4000번대 (사무실 관련)
