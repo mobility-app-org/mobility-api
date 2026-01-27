@@ -74,4 +74,12 @@ public interface DispatchRepository extends JpaRepository<Dispatch, Long>,
      */
     @Query("SELECT d FROM Dispatch d LEFT JOIN FETCH d.transporter")
     Page<Dispatch> findAllWithTransporter(Pageable pageable);
+
+    /**
+     * 특정 기사의 특정 상태 배차 조회
+     * @param transporterId 기사 ID
+     * @param status 배차 상태
+     * @return 배차 정보
+     */
+    Optional<Dispatch> findByTransporterIdAndStatus(Long transporterId, StatusType status);
 }

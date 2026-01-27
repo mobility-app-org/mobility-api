@@ -1,5 +1,6 @@
 package com.mobility.api.domain.transporter.controller;
 
+import com.mobility.api.domain.dispatch.dto.response.CurrentDispatchDetailRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchCancelRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchAssignCompleteRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchListItemRes;
@@ -85,6 +86,39 @@ public class TransporterV1Controller {
         LocationUpdateRes response = LocationUpdateRes.from(savedId);
 
         return CommonResponse.success(response);
+    }
+
+    /**
+     * 현재 배차중인 오더 상세 정보 조회
+     */
+    @Operation(
+            summary = "현재 배차중인 오더 상세 정보 조회",
+            description = """
+                    현재 로그인한 기사가 배차중인 오더의 상세 정보를 조회합니다.
+
+                    - 기사의 dispatchStatus가 DISPATCH 상태일 때만 조회 가능합니다.
+                    - EMPTY 상태(배차중인 오더가 없음)인 경우 에러가 반환됩니다.
+                    - ASSIGNED 상태의 배차 정보를 반환합니다.
+                    """
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "현재 배차중인 오더 상세 정보 조회 성공"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "배차중인 오더가 없음 (DISPATCH_NOT_ASSIGNED)"
+            )
+    })
+    @GetMapping("/current-dispatch")
+    public CommonResponse<CurrentDispatchDetailRes> getCurrentDispatch(
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true)
+            @CurrentUser Transporter transporter
+    ) {
+        Long transporterId = getValidatedTransporterId(transporter);
+        CurrentDispatchDetailRes currentDispatch = dispatcherService.getCurrentDispatch(transporterId);
+        return CommonResponse.success(currentDispatch);
     }
 
     /**
