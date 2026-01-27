@@ -1,6 +1,7 @@
 package com.mobility.api.domain.dispatch.service;
 
 import com.mobility.api.domain.dispatch.dto.DispatchDistanceProjection;
+import com.mobility.api.domain.dispatch.dto.response.CurrentDispatchDetailRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchCancelRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchDetailRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchListItemRes;
@@ -160,6 +161,29 @@ public class DispatcherService {
         return projections.stream()
                 .map(DispatchListItemRes::from)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 현재 배차중인 오더 상세 정보 조회
+     * @param transporterId 기사 ID
+     * @return CurrentDispatchDetailRes 현재 배차중인 오더 상세 정보
+     */
+    public CurrentDispatchDetailRes getCurrentDispatch(Long transporterId) {
+        // 1. 기사 정보 조회
+        Transporter transporter = transporterRepository.findById(transporterId)
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
+
+        // 2. 배차 상태가 EMPTY인 경우 (배차중인 오더가 없는 경우) 에러
+        if (transporter.getDispatchStatus() == DispatchStatus.EMPTY) {
+            throw new GlobalException(ResultCode.DISPATCH_NOT_ASSIGNED);
+        }
+
+        // 3. 기사에게 ASSIGNED 상태로 배차된 오더 조회
+        Dispatch dispatch = dispatchRepository.findByTransporterIdAndStatus(transporterId, StatusType.ASSIGNED)
+                .orElseThrow(() -> new GlobalException(ResultCode.DISPATCH_NOT_ASSIGNED));
+
+        // 4. DTO 변환 및 반환
+        return CurrentDispatchDetailRes.from(dispatch);
     }
 
     /**
