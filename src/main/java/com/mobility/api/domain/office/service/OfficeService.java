@@ -258,19 +258,23 @@ public class OfficeService {
     /**
      * 대시보드 실시간 피드 조회
      * @param limit 조회 개수 (기본: 20)
+     * @param manager 현재 로그인한 관리자
      * @return 최근 배차 이벤트 피드 목록
      */
     @Transactional(readOnly = true)
-    public List<DispatchFeedRes> getDispatchFeed(Integer limit) {
+    public List<DispatchFeedRes> getDispatchFeed(Integer limit, Manager manager) {
         // 최근 배차 조회 (Transporter와 Fetch Join으로 N+1 문제 해결, createdAt 기준 내림차순)
         List<Dispatch> recentDispatches = dispatchRepository.findAllWithTransporter(
                 org.springframework.data.domain.PageRequest.of(0, limit,
                         org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"))
         ).getContent();
 
-        // HOLD 상태 제외 후 리스트로 변환
+        Long officeId = manager.getOffice().getId();
+
+        // HOLD 상태 제외 및 현재 사무실 배차만 필터링
         List<Dispatch> filteredDispatches = recentDispatches.stream()
                 .filter(dispatch -> dispatch.getStatus() != StatusType.HOLD)
+                .filter(dispatch -> dispatch.getOfficeId().equals(officeId))
                 .toList();
 
         // 각 배차를 피드 DTO로 변환 (연번 부여)
