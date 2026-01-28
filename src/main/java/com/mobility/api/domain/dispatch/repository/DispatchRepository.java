@@ -4,6 +4,8 @@ import com.mobility.api.domain.dispatch.dto.DispatchDistanceProjection;
 import com.mobility.api.domain.dispatch.entity.Dispatch;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
@@ -44,7 +46,7 @@ public interface DispatchRepository extends JpaRepository<Dispatch, Long>,
                d.toll_type as tollType
         FROM dispatch d
         WHERE d.active = true
-          AND (:statuses IS NULL OR d.status IN (:statuses))
+          AND (CAST(:statuses AS text[]) IS NULL OR d.status = ANY(CAST(:statuses AS text[])))
         ORDER BY distanceInMeters ASC
         """, nativeQuery = true)
     List<DispatchDistanceProjection> findDispatchesByDistance(
@@ -64,4 +66,20 @@ public interface DispatchRepository extends JpaRepository<Dispatch, Long>,
      */
     @Query("SELECT d.status, COUNT(d) FROM Dispatch d WHERE d.officeId = :officeId GROUP BY d.status")
     List<Object[]> countByStatusAndOfficeId(@Param("officeId") Long officeId);
+
+    /**
+     * 배차 목록 조회 (Transporter와 Fetch Join으로 N+1 문제 해결)
+     * @param pageable 페이징 및 정렬 정보
+     * @return 배차 목록 (Transporter 포함)
+     */
+    @Query("SELECT d FROM Dispatch d LEFT JOIN FETCH d.transporter")
+    Page<Dispatch> findAllWithTransporter(Pageable pageable);
+
+    /**
+     * 특정 기사의 특정 상태 배차 조회
+     * @param transporterId 기사 ID
+     * @param status 배차 상태
+     * @return 배차 정보
+     */
+    Optional<Dispatch> findByTransporterIdAndStatus(Long transporterId, StatusType status);
 }

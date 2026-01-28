@@ -1,6 +1,7 @@
 package com.mobility.api.domain.dispatch.service;
 
 import com.mobility.api.domain.dispatch.dto.DispatchDistanceProjection;
+import com.mobility.api.domain.dispatch.dto.response.CurrentDispatchDetailRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchCancelRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchDetailRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchListItemRes;
@@ -8,6 +9,7 @@ import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
 import com.mobility.api.domain.dispatch.dto.response.DispatchAssignCompleteRes;
+import com.mobility.api.domain.transporter.DispatchStatus;
 import com.mobility.api.domain.transporter.entity.LocationHistory;
 import com.mobility.api.domain.transporter.entity.Transporter;
 import com.mobility.api.domain.transporter.repository.LocationRepository;
@@ -45,6 +47,9 @@ public class DispatcherService {
         // 3. 배차 할당
         dispatch.assignDispatch(transporter);
 
+        // 4. 기사의 배차 상태를 DISPATCH로 변경 (배차중인 오더가 있음)
+        transporter.changeDispatchStatus(DispatchStatus.DISPATCH);
+
         return DispatchAssignCompleteRes.from(dispatch);
     }
 
@@ -61,6 +66,9 @@ public class DispatcherService {
 
         dispatch.cancelDispatch(transporter);
 
+        // 3. 기사의 배차 상태를 EMPTY로 변경 (배차중인 오더가 없음)
+        transporter.changeDispatchStatus(DispatchStatus.EMPTY);
+
         return DispatchCancelRes.from(dispatch);
     }
 
@@ -76,6 +84,9 @@ public class DispatcherService {
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_DISPATCH));
 
         dispatch.completeDispatch(transporter);
+
+        // 3. 기사의 배차 상태를 EMPTY로 변경 (배차중인 오더가 없음)
+        transporter.changeDispatchStatus(DispatchStatus.EMPTY);
 
         return DispatchAssignCompleteRes.from(dispatch);
     }
@@ -118,11 +129,20 @@ public class DispatcherService {
      * @return 거리순으로 정렬된 배차 리스트
      */
     public List<DispatchListItemRes> getDispatchListByDistance(Long transporterId, List<StatusType> statuses) {
-        // 1. 기사의 최신 위치 조회
+        // 1. 기사 정보 조회 및 배차 상태 체크
+        Transporter transporter = transporterRepository.findById(transporterId)
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
+
+        // 배차 상태가 DISPATCH인 경우 (이미 배차중인 오더가 있는 경우) 에러
+        if (transporter.getDispatchStatus() == DispatchStatus.DISPATCH) {
+            throw new GlobalException(ResultCode.TRANSPORTER_ALREADY_DISPATCHED);
+        }
+
+        // 2. 기사의 최신 위치 조회
         LocationHistory latestLocation = locationRepository.findFirstByTransporter_IdOrderByIdDesc(transporterId)
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
 
-        // 2. 기사 위치 기준으로 배차를 거리순으로 조회 (상태 필터링 적용)
+        // 3. 기사 위치 기준으로 배차를 거리순으로 조회 (상태 필터링 적용)
         double lat = latestLocation.getLocation().getY();
         double lon = latestLocation.getLocation().getX();
 
@@ -137,10 +157,33 @@ public class DispatcherService {
 
         List<DispatchDistanceProjection> projections = dispatchRepository.findDispatchesByDistance(lat, lon, statusStrings);
 
-        // 3. Projection -> DTO 변환
+        // 4. Projection -> DTO 변환
         return projections.stream()
                 .map(DispatchListItemRes::from)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 현재 배차중인 오더 상세 정보 조회
+     * @param transporterId 기사 ID
+     * @return CurrentDispatchDetailRes 현재 배차중인 오더 상세 정보
+     */
+    public CurrentDispatchDetailRes getCurrentDispatch(Long transporterId) {
+        // 1. 기사 정보 조회
+        Transporter transporter = transporterRepository.findById(transporterId)
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
+
+        // 2. 배차 상태가 EMPTY인 경우 (배차중인 오더가 없는 경우) 에러
+        if (transporter.getDispatchStatus() == DispatchStatus.EMPTY) {
+            throw new GlobalException(ResultCode.DISPATCH_NOT_ASSIGNED);
+        }
+
+        // 3. 기사에게 ASSIGNED 상태로 배차된 오더 조회
+        Dispatch dispatch = dispatchRepository.findByTransporterIdAndStatus(transporterId, StatusType.ASSIGNED)
+                .orElseThrow(() -> new GlobalException(ResultCode.DISPATCH_NOT_ASSIGNED));
+
+        // 4. DTO 변환 및 반환
+        return CurrentDispatchDetailRes.from(dispatch);
     }
 
     /**

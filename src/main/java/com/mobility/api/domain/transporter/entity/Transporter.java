@@ -3,6 +3,7 @@ package com.mobility.api.domain.transporter.entity;
 import com.mobility.api.domain.office.entity.Office;
 import com.mobility.api.global.entity.BaseEntity;
 import com.mobility.api.domain.transporter.TransporterStatus;
+import com.mobility.api.domain.transporter.DispatchStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -41,6 +42,11 @@ public class Transporter extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private TransporterStatus status = TransporterStatus.PENDING;
 
+    // 배차 상태 필드 (기본값: EMPTY - 배차중인 오더가 없는 상태)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "dispatch_status")
+    private DispatchStatus dispatchStatus = DispatchStatus.EMPTY;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "office_id")    // DB 컬럼명: office_id
     private Office office;
@@ -48,5 +54,10 @@ public class Transporter extends BaseEntity {
     // 상태 변경 편의 메서드 (Dirty Checking용)
     public void changeStatus(TransporterStatus newStatus) {
         this.status = newStatus;
+    }
+
+    // 배차 상태 변경 편의 메서드 (Dirty Checking용)
+    public void changeDispatchStatus(DispatchStatus newDispatchStatus) {
+        this.dispatchStatus = newDispatchStatus;
     }
 }
