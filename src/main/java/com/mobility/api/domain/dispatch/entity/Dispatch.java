@@ -138,4 +138,18 @@ public class Dispatch extends BaseEntity {
             throw new GlobalException(ResultCode.FORBIDDEN);
         }
     }
+
+    /**
+     * 노출 범위 토글 (자사 <-> 통합)
+     * @return 변경된 상태값
+     */
+    public CallType toggleExposure() {
+        if (this.call == CallType.INTERNAL) {
+            this.call = CallType.INTEGRATED;
+        } else {
+            this.call = CallType.INTERNAL;
+        }
+        return this.call;
+    }
+
 }

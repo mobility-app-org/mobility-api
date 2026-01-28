@@ -1,6 +1,7 @@
 package com.mobility.api.domain.office.service;
 
 import com.mobility.api.domain.dispatch.entity.Dispatch;
+import com.mobility.api.domain.dispatch.enums.CallType;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
 import com.mobility.api.domain.dispatch.service.AutoDispatchService;
@@ -323,6 +324,28 @@ public class OfficeService {
                             .build();
                 })
                 .toList();
+    }
+
+    /**
+     * 배차 노출 범위 변경 (Toggle)
+     */
+    @Transactional
+    public String changeDispatchExposure(Long dispatchId, Manager manager) {
+
+        // 1. 배차 조회
+        Dispatch dispatch = dispatchRepository.findById(dispatchId)
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_DISPATCH));
+
+        // 2. 권한 검증 (내 사무실 배차인지)
+        if (!dispatch.getOfficeId().equals(manager.getOffice().getId())) {
+            throw new GlobalException(ResultCode.UNAUTHORIZED_ACCESS);
+        }
+
+        // 3. 상태 토글 (Entity 메서드 호출)
+        CallType newType = dispatch.toggleExposure();
+
+        // 4. 변경된 상태 문자열 반환 ("INTEGRATED" 등)
+        return newType.name();
     }
 
 }

@@ -277,7 +277,7 @@ public class OfficeV1Controller {
      */
     @Operation(summary = "기사 상태 변경", description = "")
     @RequestMapping(path = "/transporter/{transporterId}/status", method = RequestMethod.PATCH)
-    public CommonResponse<Integer> changeTransporterStatus(
+    public CommonResponse<String> changeTransporterStatus(
             @AuthenticationPrincipal PrincipalDetails user,
             @PathVariable Long transporterId,
             @RequestBody TransporterStatusUpdateReq req
@@ -289,7 +289,28 @@ public class OfficeV1Controller {
                 user.getManager()
         );
 
-        return CommonResponse.success(0);
+        return CommonResponse.success("기사 상태 변경 성공");
+    }
+
+    /**
+     * <pre>
+     *     배차 노출범위 변경
+     * </pre>
+     * @param user
+     * @return
+     */
+    @Operation(summary = "배차 노출범위 변경", description = "")
+    @RequestMapping(path = "/dispatch/{dispatchId}/exposure", method = RequestMethod.PATCH)
+    public CommonResponse<String> changeDispatchExposure(
+            @AuthenticationPrincipal PrincipalDetails user,
+            @PathVariable Long dispatchId
+    ) {
+
+        // 서비스 호출 및 결과 받기
+        String changedStatus = officeService.changeDispatchExposure(dispatchId, user.getManager());
+
+        // 변경된 상태를 메시지나 데이터로 주면 프론트에서 UI 갱신하기 편함
+        return CommonResponse.success(changedStatus);
     }
 
 }
