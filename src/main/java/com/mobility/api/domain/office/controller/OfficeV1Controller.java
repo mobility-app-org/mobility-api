@@ -24,7 +24,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -259,11 +261,25 @@ public class OfficeV1Controller {
      */
     @Operation(summary = "기사 리스트 조회", description = "")
     @RequestMapping(path = "/transporter", method = RequestMethod.GET)
-    public CommonResponse<List<TransporterRes>> getMyTransporters(
-            @AuthenticationPrincipal PrincipalDetails user
+    public CommonResponse<Page<TransporterRes>> getMyTransporters(
+            @AuthenticationPrincipal PrincipalDetails user,
+            @RequestParam(required = false) String status,     // 필터: 없을 수도 있음
+            @RequestParam(defaultValue = "0") int page,        // 페이지: 안 보내면 0
+            @RequestParam(defaultValue = "20") int size        // 크기: 안 보내면 20
     ) {
+
+        // 페이징 객체 생성 (최신순 정렬 예시: id 내림차순)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+
         // userDetails.getUsername() -> 로그인한 관리자의 ID
-        List<TransporterRes> result = officeService.getMyTransporters(user.getManager());
+//        List<TransporterRes> result = officeService.getMyTransporters(user.getManager());
+
+        // 서비스 호출
+        Page<TransporterRes> result = officeService.getMyTransporters(
+                user.getManager(),
+                status,
+                pageable
+        );
 
         return CommonResponse.success(result);
     }
