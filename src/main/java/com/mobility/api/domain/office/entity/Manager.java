@@ -1,17 +1,21 @@
 package com.mobility.api.domain.office.entity;
 
 import com.mobility.api.domain.office.enums.ManagerRole;
+import com.mobility.api.domain.office.enums.ManagerStatus;
+import com.mobility.api.global.entity.BaseSoftDeleteEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "manager") // DB 테이블명
-public class Manager {
+@SQLDelete(sql = "UPDATE manager SET deleted_at = NOW() WHERE manager_id = ?")
+public class Manager extends BaseSoftDeleteEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,6 +46,11 @@ public class Manager {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ManagerRole role;
+
+    // 상태 (ACTIVE, PENDING, INACTIVE)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(20) default 'PENDING'")
+    private ManagerStatus status;
 
     // 5. 소속 사무실 (어느 사무실 사람인지?)
     @ManyToOne(fetch = FetchType.LAZY)
