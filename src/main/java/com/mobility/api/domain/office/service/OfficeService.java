@@ -5,16 +5,11 @@ import com.mobility.api.domain.dispatch.enums.CallType;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
 import com.mobility.api.domain.dispatch.service.AutoDispatchService;
-import com.mobility.api.domain.office.dto.request.CancelDispatchReq;
-import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
-import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
-import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
-import com.mobility.api.domain.office.dto.response.DispatchFeedRes;
-import com.mobility.api.domain.office.dto.response.DispatchSummaryRes;
-import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
-import com.mobility.api.domain.office.dto.response.GetDispatchDetailRes;
+import com.mobility.api.domain.office.dto.request.*;
+import com.mobility.api.domain.office.dto.response.*;
 import com.mobility.api.domain.office.entity.Manager;
 import com.mobility.api.domain.office.entity.Office;
+import com.mobility.api.domain.office.repository.OfficeRepository;
 import com.mobility.api.domain.transporter.TransporterStatus;
 import com.mobility.api.domain.transporter.dto.request.TransporterCreateReq;
 import com.mobility.api.domain.transporter.dto.response.TransporterRes;
@@ -43,6 +38,40 @@ public class OfficeService {
     private final DispatchRepository dispatchRepository;
     private final TransporterRepository transporterRepository;
     private final AutoDispatchService autoDispatchService;
+    private final OfficeRepository officeRepository;
+
+    /**
+     * 사무실 정보 조회
+     */
+    @Transactional(readOnly = true)
+    public OfficeProfileRes getOfficeProfile(Manager manager) {
+
+        Long officeId = manager.getOffice().getId(); // 여기의 manager객체는 office의 id만 가지고 있음
+
+        Office office = officeRepository.findById(officeId)
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_OFFICE));
+
+        // 2. DTO 변환
+        return OfficeProfileRes.from(office);
+    }
+
+    /**
+     * 사무실 정보 수정
+     */
+    @Transactional
+    public void updateOfficeProfile(Manager manager, OfficeUpdateReq req) {
+        // 1. 매니저가 가진 프록시 객체에서 ID만 추출 (쿼리 안나감)
+        Long officeId = manager.getOffice().getId();
+
+        // 2. 수정을 위해 진짜 엔티티 조회
+        Office office = officeRepository.findById(officeId)
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_OFFICE));
+
+        // 3. 비즈니스 로직 호출 (변경 감지 활용)
+        office.updateProfile(req);
+
+        // 트랜잭션 종료 시점에 Dirty Checking으로 DB 반영
+    }
 
     public Page<GetAllDispatchRes> findAllDispatch(DispatchSearchDto searchDto, Pageable pageable) {
 

@@ -1,14 +1,8 @@
 package com.mobility.api.domain.office.controller;
 
 import com.mobility.api.domain.dispatch.entity.Dispatch;
-import com.mobility.api.domain.office.dto.request.CancelDispatchReq;
-import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
-import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
-import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
-import com.mobility.api.domain.office.dto.response.DispatchFeedRes;
-import com.mobility.api.domain.office.dto.response.DispatchSummaryRes;
-import com.mobility.api.domain.office.dto.response.GetAllDispatchRes;
-import com.mobility.api.domain.office.dto.response.GetDispatchDetailRes;
+import com.mobility.api.domain.office.dto.request.*;
+import com.mobility.api.domain.office.dto.response.*;
 import com.mobility.api.domain.office.service.OfficeService;
 import com.mobility.api.domain.transporter.dto.request.TransporterCreateReq;
 import com.mobility.api.domain.transporter.dto.request.TransporterStatusUpdateReq;
@@ -39,6 +33,34 @@ import java.util.List;
 public class OfficeV1Controller {
 
     private final OfficeService officeService;
+
+    /**
+     * <pre>
+     * 사무실 정보 조회
+     * </pre>
+     */
+    @Operation(summary = "사무실 정보 조회", description = "현재 로그인한 관리자가 소속된 사무실의 상세 정보를 조회합니다.")
+    @GetMapping("/profile") // URL: /api/v1/office/profile
+    public CommonResponse<OfficeProfileRes> getOfficeProfile(
+            @AuthenticationPrincipal PrincipalDetails user
+    ) {
+        return CommonResponse.success(officeService.getOfficeProfile(user.getManager()));
+    }
+
+    /**
+     * <pre>
+     * 사무실 정보 수정
+     * </pre>
+     */
+    @Operation(summary = "사무실 정보 수정", description = "소속된 사무실의 상세 정보를 수정합니다.")
+    @PatchMapping("/profile")
+    public CommonResponse<String> updateOfficeProfile(
+            @AuthenticationPrincipal PrincipalDetails user,
+            @RequestBody @Valid OfficeUpdateReq req
+    ) {
+        officeService.updateOfficeProfile(user.getManager(), req);
+        return CommonResponse.success("사무실 정보가 성공적으로 수정되었습니다.");
+    }
 
     /**
      * <pre>

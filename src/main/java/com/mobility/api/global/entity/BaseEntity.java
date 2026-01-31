@@ -19,11 +19,17 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public abstract class BaseEntity {
 
+    // db에 직접 데이터를 넣을 때에도 자동으로 시간이 들어가도록 columnDefinition 설정
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at",
+            updatable = false,
+            nullable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
+    @Column(name = "updated_at",
+            nullable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;
 }
