@@ -1,5 +1,7 @@
 package com.mobility.api.domain.office.entity;
 
+import com.mobility.api.domain.office.dto.request.OfficeUpdateReq;
+import com.mobility.api.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "office")
-public class Office {
+public class Office extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,5 +38,21 @@ public class Office {
         this.officeRegistrationNumber = officeRegistrationNumber;
         this.officeAddress = officeAddress;
         this.officeTelNumber = officeTelNumber;
+    }
+
+    public void updateProfile(OfficeUpdateReq req) {
+        // 값이 null이 아니고, (필요시) 비어있지 않은 경우에만 업데이트
+        if (req.name() != null) {
+            this.officeName = req.name();
+        }
+        if (req.registrationNumber() != null) {
+            this.officeRegistrationNumber = req.registrationNumber();
+        }
+        if (req.address() != null) {
+            this.officeAddress = req.address();
+        }
+        if (req.telNumber() != null) {
+            this.officeTelNumber = req.telNumber();
+        }
     }
 }

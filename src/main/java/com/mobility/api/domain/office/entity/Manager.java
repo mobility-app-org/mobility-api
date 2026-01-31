@@ -4,10 +4,7 @@ import com.mobility.api.domain.office.enums.ManagerRole;
 import com.mobility.api.domain.office.enums.ManagerStatus;
 import com.mobility.api.global.entity.BaseSoftDeleteEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 
 @Entity
