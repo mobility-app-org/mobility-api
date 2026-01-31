@@ -67,4 +67,9 @@ public class Manager extends BaseSoftDeleteEntity {
         this.role = role;
         this.office = office;
     }
+
+    // [비즈니스 로직] 상태 변경 메서드
+    public void updateStatus(ManagerStatus status) {
+        this.status = status;
+    }
 }
