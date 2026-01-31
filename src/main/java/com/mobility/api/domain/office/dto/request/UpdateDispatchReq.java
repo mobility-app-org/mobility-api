@@ -1,8 +1,6 @@
 package com.mobility.api.domain.office.dto.request;
 
-import com.mobility.api.domain.dispatch.enums.CallType;
-import com.mobility.api.domain.dispatch.enums.ServiceType;
-import com.mobility.api.domain.dispatch.enums.StatusType;
+import com.mobility.api.domain.dispatch.enums.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "배차 수정 request 객체")
@@ -42,6 +40,19 @@ public record UpdateDispatchReq(
         Boolean active,
 
         @Schema(description = "서비스 타입", example = "DELIVERY")
-        ServiceType service
-) {
+        ServiceType service,
+
+        @Schema(description = "배차 번호", example = "2024-0001")
+        String dispatchNumber,
+
+        @Schema(description = "메모", example = "memo")
+        String memo,
+
+        @Schema(description = "결제 방식", example = "CASH")
+        PaymentType paymentType,
+
+        @Schema(description = "톨비 방식", example = "HIPASS")
+        TollType tollType
+
+        ) {
 }

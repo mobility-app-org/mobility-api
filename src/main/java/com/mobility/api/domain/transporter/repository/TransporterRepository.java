@@ -1,8 +1,11 @@
 package com.mobility.api.domain.transporter.repository;
 
 import com.mobility.api.domain.office.entity.Office;
+import com.mobility.api.domain.transporter.TransporterStatus;
 import com.mobility.api.domain.transporter.dto.TransporterDistanceProjection;
 import com.mobility.api.domain.transporter.entity.Transporter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -84,5 +87,11 @@ public interface TransporterRepository extends JpaRepository<Transporter, Long> 
 
     // 특정 사무실에 소속된 기사 목록 조회
     List<Transporter> findAllByOffice(Office office);
+
+    // 1. 상태 필터 없이 전체 조회 (페이징)
+    Page<Transporter> findAllByOffice(Office office, Pageable pageable);
+
+    // 2. 상태 필터 적용 조회 (페이징)
+    Page<Transporter> findAllByOfficeAndStatus(Office office, TransporterStatus status, Pageable pageable);
 
 }

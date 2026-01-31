@@ -55,6 +55,11 @@ public enum ResultCode {
     FIXME_FAIL(HttpStatus.NOT_FOUND, 9999, "임시 취소 응답 (수정 필요)"),
 
     /**
+     * 6000번대 (직원 관련)
+     */
+    CANNOT_INACTIVATE_SELF(HttpStatus.BAD_REQUEST, 6001, "본인 계정은 비활성화할 수 없습니다."),
+
+    /**
      * dev
      */
     DEV_BAD_REQUEST(HttpStatus.BAD_REQUEST, 9998, "DEV: X-Temp-User-Id 헤더가 유효한 숫자가 아닙니다.");

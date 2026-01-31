@@ -1,9 +1,11 @@
 package com.mobility.api.domain.office.service;
 
 import com.mobility.api.domain.dispatch.entity.Dispatch;
+import com.mobility.api.domain.dispatch.enums.CallType;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
 import com.mobility.api.domain.dispatch.service.AutoDispatchService;
+import com.mobility.api.domain.office.dto.request.CancelDispatchReq;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
@@ -77,7 +79,7 @@ public class OfficeService {
     }
 
     @Transactional
-    public void saveDispatch(CreateDispatchReq createDispatchReq) {
+    public void saveDispatch(CreateDispatchReq createDispatchReq, Manager manager) {
         // 1. 주변 1km 내 자동배차 ON 기사 존재 여부 확인
         boolean hasEligibleDrivers = transporterRepository.existsEligibleDriversWithinRadius(
                 createDispatchReq.startLatitude(),
@@ -86,6 +88,12 @@ public class OfficeService {
 
         // 2. 배차 엔티티 생성
         Dispatch dispatch = createDispatchReq.toEntity();
+
+        if(manager == null || manager.getOffice() == null) {
+            throw new GlobalException(ResultCode.NOT_FOUND_OFFICE);
+        }
+
+        dispatch.setOfficeId(manager.getOffice().getId());
 
         // 3. 적격 기사 유무에 따라 상태 결정
         if (hasEligibleDrivers) {
@@ -129,7 +137,7 @@ public class OfficeService {
     }
 
     @Transactional
-    public void cancelDispatch(Long dispatchId) { // <- 메서드 이름도 delete -> cancel로 변경
+    public void cancelDispatch(Long dispatchId, CancelDispatchReq req, Manager user) { // <- 메서드 이름도 delete -> cancel로 변경
 
         // 엔티티 조회
         Dispatch dispatch = dispatchRepository.findById(dispatchId)
@@ -142,6 +150,7 @@ public class OfficeService {
 
         // TODO: dispatch.cancel() 같은 엔티티 메서드로 캡슐화
         dispatch.setStatus(StatusType.CANCELED);
+        dispatch.setCancelReason(req.cancelReason());
         dispatch.setCanceledAt(java.time.LocalDateTime.now());
 
         // @Transactional이 변경 감지(Dirty Checking)로 UPDATE
@@ -209,23 +218,42 @@ public class OfficeService {
      * @param manager 로그인한 직원
      */
     @Transactional(readOnly = true) // 조회 전용이므로 readOnly 권장 (성능 향상)
-    public List<TransporterRes> getMyTransporters(Manager manager) {
-
-        // 1. 관리자(사장님) 찾기
+    public Page<TransporterRes> getMyTransporters(Manager manager, String statusStr, Pageable pageable) {
 
         // 2. 소속 사무실 확인
         Office office = manager.getOffice();
         if (office == null) {
-            throw new GlobalException(ResultCode.FIXME_FAIL);
+            throw new GlobalException(ResultCode.NOT_FOUND_OFFICE);
         }
 
-        // 3. 해당 사무실의 기사 리스트 조회
-        List<Transporter> transporters = transporterRepository.findAllByOffice(office);
+        Page<Transporter> transporterPage;
 
-        // 4. Entity List -> DTO List 변환하여 반환
-        return transporters.stream()
-                .map(TransporterRes::from)
-                .toList();
+        // 1. status 파라미터가 있으면 -> 해당 상태로 필터링
+        if (statusStr != null && !statusStr.isBlank()) {
+            try {
+                // 프론트에서 소문자로 줘도 대문자로 변환 (active -> ACTIVE)
+                TransporterStatus status = TransporterStatus.valueOf(statusStr.toUpperCase());
+                transporterPage = transporterRepository.findAllByOfficeAndStatus(office, status, pageable);
+            } catch (IllegalArgumentException e) {
+                // 이상한 status 문자열이 들어오면 빈 페이지 리턴 or 에러 처리 (여기선 빈 페이지)
+                return Page.empty(pageable);
+            }
+        }
+        // 2. status 파라미터가 없으면 -> 전체 조회
+        else {
+            transporterPage = transporterRepository.findAllByOffice(office, pageable);
+        }
+
+        // 3. Entity Page -> DTO Page 변환
+        return transporterPage.map(TransporterRes::from);
+
+//        // 3. 해당 사무실의 기사 리스트 조회
+//        List<Transporter> transporters = transporterRepository.findAllByOffice(office);
+//
+//        // 4. Entity List -> DTO List 변환하여 반환
+//        return transporters.stream()
+//                .map(TransporterRes::from)
+//                .toList();
     }
 
     @Transactional
@@ -315,6 +343,28 @@ public class OfficeService {
                             .build();
                 })
                 .toList();
+    }
+
+    /**
+     * 배차 노출 범위 변경 (Toggle)
+     */
+    @Transactional
+    public String changeDispatchExposure(Long dispatchId, Manager manager) {
+
+        // 1. 배차 조회
+        Dispatch dispatch = dispatchRepository.findById(dispatchId)
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_DISPATCH));
+
+        // 2. 권한 검증 (내 사무실 배차인지)
+        if (!dispatch.getOfficeId().equals(manager.getOffice().getId())) {
+            throw new GlobalException(ResultCode.UNAUTHORIZED_ACCESS);
+        }
+
+        // 3. 상태 토글 (Entity 메서드 호출)
+        CallType newType = dispatch.toggleExposure();
+
+        // 4. 변경된 상태 문자열 반환 ("INTEGRATED" 등)
+        return newType.name();
     }
 
 }

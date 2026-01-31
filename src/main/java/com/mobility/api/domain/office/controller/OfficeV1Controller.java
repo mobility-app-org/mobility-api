@@ -1,6 +1,7 @@
 package com.mobility.api.domain.office.controller;
 
 import com.mobility.api.domain.dispatch.entity.Dispatch;
+import com.mobility.api.domain.office.dto.request.CancelDispatchReq;
 import com.mobility.api.domain.office.dto.request.CreateDispatchReq;
 import com.mobility.api.domain.office.dto.request.DispatchSearchDto;
 import com.mobility.api.domain.office.dto.request.UpdateDispatchReq;
@@ -23,7 +24,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -168,9 +171,11 @@ public class OfficeV1Controller {
     @Operation(summary = "배차 등록", description = "")
     @RequestMapping(path = "/dispatch", method = RequestMethod.POST)
     public CommonResponse<Object> createDispatch(
+            @AuthenticationPrincipal PrincipalDetails user,
             @Valid @RequestBody CreateDispatchReq createDispatchReq
     ) {
-        officeService.saveDispatch(createDispatchReq);
+
+        officeService.saveDispatch(createDispatchReq, user.getManager());
 
         return CommonResponse.success(null);
     }
@@ -186,6 +191,7 @@ public class OfficeV1Controller {
     @Operation(summary = "배차 수정", description = "")
     @RequestMapping(path = "/dispatch/{dispatch_id}", method = RequestMethod.PATCH)
     public CommonResponse<Dispatch> updateDispatch(
+            @AuthenticationPrincipal PrincipalDetails user,
             @PathVariable("dispatch_id") Long dispatchId,
             @RequestBody UpdateDispatchReq updateDispatchReq
     ) {
@@ -203,9 +209,11 @@ public class OfficeV1Controller {
     @Operation(summary = "배차 취소 (삭제)", description = "")
     @RequestMapping(path = "/dispatch-cancel/{dispatch_id}", method = RequestMethod.POST)
     public CommonResponse<Object> cancelDispatch(
-            @PathVariable("dispatch_id") Long dispatchId
+            @AuthenticationPrincipal PrincipalDetails user,
+            @PathVariable("dispatch_id") Long dispatchId,
+            @RequestBody CancelDispatchReq req
     ) {
-        officeService.cancelDispatch(dispatchId);
+        officeService.cancelDispatch(dispatchId, req, user.getManager());
         return CommonResponse.success(null); // FIXME return값 수정
     }
 
@@ -253,11 +261,25 @@ public class OfficeV1Controller {
      */
     @Operation(summary = "기사 리스트 조회", description = "")
     @RequestMapping(path = "/transporter", method = RequestMethod.GET)
-    public CommonResponse<List<TransporterRes>> getMyTransporters(
-            @AuthenticationPrincipal PrincipalDetails user
+    public CommonResponse<Page<TransporterRes>> getMyTransporters(
+            @AuthenticationPrincipal PrincipalDetails user,
+            @RequestParam(required = false) String status,     // 필터: 없을 수도 있음
+            @RequestParam(defaultValue = "0") int page,        // 페이지: 안 보내면 0
+            @RequestParam(defaultValue = "20") int size        // 크기: 안 보내면 20
     ) {
+
+        // 페이징 객체 생성 (최신순 정렬 예시: id 내림차순)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+
         // userDetails.getUsername() -> 로그인한 관리자의 ID
-        List<TransporterRes> result = officeService.getMyTransporters(user.getManager());
+//        List<TransporterRes> result = officeService.getMyTransporters(user.getManager());
+
+        // 서비스 호출
+        Page<TransporterRes> result = officeService.getMyTransporters(
+                user.getManager(),
+                status,
+                pageable
+        );
 
         return CommonResponse.success(result);
     }
@@ -271,7 +293,7 @@ public class OfficeV1Controller {
      */
     @Operation(summary = "기사 상태 변경", description = "")
     @RequestMapping(path = "/transporter/{transporterId}/status", method = RequestMethod.PATCH)
-    public CommonResponse<Integer> changeTransporterStatus(
+    public CommonResponse<String> changeTransporterStatus(
             @AuthenticationPrincipal PrincipalDetails user,
             @PathVariable Long transporterId,
             @RequestBody TransporterStatusUpdateReq req
@@ -283,7 +305,28 @@ public class OfficeV1Controller {
                 user.getManager()
         );
 
-        return CommonResponse.success(0);
+        return CommonResponse.success("기사 상태 변경 성공");
+    }
+
+    /**
+     * <pre>
+     *     배차 노출범위 변경
+     * </pre>
+     * @param user
+     * @return
+     */
+    @Operation(summary = "배차 노출범위 변경", description = "")
+    @RequestMapping(path = "/dispatch/{dispatchId}/exposure", method = RequestMethod.PATCH)
+    public CommonResponse<String> changeDispatchExposure(
+            @AuthenticationPrincipal PrincipalDetails user,
+            @PathVariable Long dispatchId
+    ) {
+
+        // 서비스 호출 및 결과 받기
+        String changedStatus = officeService.changeDispatchExposure(dispatchId, user.getManager());
+
+        // 변경된 상태를 메시지나 데이터로 주면 프론트에서 UI 갱신하기 편함
+        return CommonResponse.success(changedStatus);
     }
 
 }
