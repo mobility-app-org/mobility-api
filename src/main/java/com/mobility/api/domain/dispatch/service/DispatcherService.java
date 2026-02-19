@@ -36,18 +36,23 @@ public class DispatcherService {
     @Transactional
     public DispatchAssignCompleteRes assignDispatch(Long dispatchId, Long transporterId) {
 
-        // 1. 기사 정보 조회
-        Transporter transporter = transporterRepository.findById(transporterId)
+        // 1. 기사 정보 조회 (비관적 락)
+        Transporter transporter = transporterRepository.findByIdWithPessimisticLock(transporterId)
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
 
-        // 2. 배차 정보 조회 -> DB 로우에 락이 걸림
+        // 2. 이미 배차중인 기사인지 체크
+        if (transporter.getDispatchStatus() == DispatchStatus.DISPATCH) {
+            throw new GlobalException(ResultCode.TRANSPORTER_ALREADY_DISPATCHED);
+        }
+
+        // 3. 배차 정보 조회 (비관적 락)
         Dispatch dispatch = dispatchRepository.findByIdWithPessimisticLock(dispatchId)
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_DISPATCH));
 
-        // 3. 배차 할당
+        // 4. 배차 할당
         dispatch.assignDispatch(transporter);
 
-        // 4. 기사의 배차 상태를 DISPATCH로 변경 (배차중인 오더가 있음)
+        // 5. 기사의 배차 상태를 DISPATCH로 변경 (배차중인 오더가 있음)
         transporter.changeDispatchStatus(DispatchStatus.DISPATCH);
 
         return DispatchAssignCompleteRes.from(dispatch);
@@ -178,8 +183,8 @@ public class DispatcherService {
             throw new GlobalException(ResultCode.DISPATCH_NOT_ASSIGNED);
         }
 
-        // 3. 기사에게 ASSIGNED 상태로 배차된 오더 조회
-        Dispatch dispatch = dispatchRepository.findByTransporterIdAndStatus(transporterId, StatusType.ASSIGNED)
+        // 3. 기사에게 ASSIGNED 상태로 배차된 오더 조회 (최신순)
+        Dispatch dispatch = dispatchRepository.findFirstByTransporterIdAndStatusOrderByAssignedAtDesc(transporterId, StatusType.ASSIGNED)
                 .orElseThrow(() -> new GlobalException(ResultCode.DISPATCH_NOT_ASSIGNED));
 
         // 4. DTO 변환 및 반환
