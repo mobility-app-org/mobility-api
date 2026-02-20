@@ -82,4 +82,17 @@ public interface DispatchRepository extends JpaRepository<Dispatch, Long>,
      * @return 배차 정보
      */
     Optional<Dispatch> findByTransporterIdAndStatus(Long transporterId, StatusType status);
+
+    /**
+     * 특정 기사의 특정 상태 배차 조회 (최신순)
+     * 여러 건이 있을 경우 가장 최근에 할당된 배차 반환
+     * @param transporterId 기사 ID
+     * @param status 배차 상태
+     * @return 가장 최근 배차 정보
+     */
+    @Query("SELECT d FROM Dispatch d WHERE d.transporter.id = :transporterId AND d.status = :status ORDER BY d.assignedAt DESC LIMIT 1")
+    Optional<Dispatch> findFirstByTransporterIdAndStatusOrderByAssignedAtDesc(
+            @Param("transporterId") Long transporterId,
+            @Param("status") StatusType status
+    );
 }
