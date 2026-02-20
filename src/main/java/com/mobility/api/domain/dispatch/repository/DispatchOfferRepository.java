@@ -36,4 +36,17 @@ public interface DispatchOfferRepository extends JpaRepository<DispatchOffer, Lo
      */
     @Query("SELECT COUNT(o) FROM DispatchOffer o WHERE o.transporter.id = :transporterId AND o.status = 'PENDING'")
     int countPendingOffersByTransporter(@Param("transporterId") Long transporterId);
+
+    /**
+     * 기사의 ACCEPTED 상태 제안 조회
+     * - 한 기사가 하나의 배차만 수락할 수 있도록 검증용
+     */
+    @Query("SELECT o FROM DispatchOffer o WHERE o.transporter.id = :transporterId AND o.status = 'ACCEPTED'")
+    List<DispatchOffer> findAcceptedOffersByTransporter(@Param("transporterId") Long transporterId);
+
+    /**
+     * 기사의 ACCEPTED 상태 제안 개수 조회
+     */
+    @Query("SELECT COUNT(o) FROM DispatchOffer o WHERE o.transporter.id = :transporterId AND o.status = 'ACCEPTED'")
+    int countAcceptedOffersByTransporter(@Param("transporterId") Long transporterId);
 }
