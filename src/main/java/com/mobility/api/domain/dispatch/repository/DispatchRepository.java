@@ -136,4 +136,12 @@ public interface DispatchRepository extends JpaRepository<Dispatch, Long>,
             @Param("fromDate") java.time.LocalDateTime fromDate,
             @Param("toDate") java.time.LocalDateTime toDate
     );
+
+    /**
+     * 배차 상세 조회 (Transporter와 Fetch Join)
+     * @param dispatchId 배차 ID
+     * @return 배차 정보 (Transporter 포함)
+     */
+    @Query("SELECT d FROM Dispatch d LEFT JOIN FETCH d.transporter WHERE d.id = :dispatchId")
+    Optional<Dispatch> findByIdWithTransporter(@Param("dispatchId") Long dispatchId);
 }

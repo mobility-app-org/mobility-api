@@ -255,12 +255,12 @@ public class DispatcherService {
         Transporter transporter = transporterRepository.findById(transporterId)
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
 
-        // 2. 배차 정보 조회
-        Dispatch dispatch = dispatchRepository.findById(dispatchId)
+        // 2. 배차 정보 조회 (Transporter와 Fetch Join)
+        Dispatch dispatch = dispatchRepository.findByIdWithTransporter(dispatchId)
                 .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_DISPATCH));
 
         // 3. 해당 배차가 해당 기사의 배차인지 확인
-        if (!dispatch.getTransporter().getId().equals(transporterId)) {
+        if (dispatch.getTransporter() == null || !dispatch.getTransporter().getId().equals(transporterId)) {
             throw new GlobalException(ResultCode.FORBIDDEN);
         }
 
