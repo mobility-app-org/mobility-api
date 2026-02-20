@@ -1,0 +1,2 @@
+-- PostGIS extension은 postgis/postgis 이미지에 이미 포함되어 있습니다
+-- 추가 초기화 스크립트가 필요한 경우 여기에 작성

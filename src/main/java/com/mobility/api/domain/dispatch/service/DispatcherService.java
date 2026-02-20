@@ -155,15 +155,16 @@ public class DispatcherService {
         double lon = latestLocation.getLocation().getX();
 
         // StatusType enum을 String으로 변환
-        // 빈 리스트면 null로 전달하여 PostgreSQL IN 절 에러 방지
-        List<String> statusStrings = null;
+        List<DispatchDistanceProjection> projections;
         if (statuses != null && !statuses.isEmpty()) {
-            statusStrings = statuses.stream()
+            List<String> statusStrings = statuses.stream()
                     .map(StatusType::name)
                     .collect(Collectors.toList());
+            projections = dispatchRepository.findDispatchesByDistanceAndStatus(lat, lon, statusStrings);
+        } else {
+            // 상태 필터 없이 전체 조회
+            projections = dispatchRepository.findDispatchesByDistance(lat, lon);
         }
-
-        List<DispatchDistanceProjection> projections = dispatchRepository.findDispatchesByDistance(lat, lon, statusStrings);
 
         // 4. Projection -> DTO 변환
         return projections.stream()

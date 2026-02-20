@@ -46,10 +46,30 @@ public interface DispatchRepository extends JpaRepository<Dispatch, Long>,
                d.toll_type as tollType
         FROM dispatch d
         WHERE d.active = true
-          AND (CAST(:statuses AS text[]) IS NULL OR d.status = ANY(CAST(:statuses AS text[])))
         ORDER BY distanceInMeters ASC
         """, nativeQuery = true)
-    List<DispatchDistanceProjection> findDispatchesByDistance(
+    List<DispatchDistanceProjection> findDispatchesByDistance(@Param("lat") double lat, @Param("lon") double lon);
+
+    @Query(value = """
+        SELECT d.id as id,
+               d.service as serviceType,
+               d.charge as charge,
+               d.start_location as startLocation,
+               d.destination_location as destinationLocation,
+               d.status as status,
+               ST_DistanceSphere(
+                   ST_SetSRID(ST_MakePoint(d.start_longitude, d.start_latitude), 4326),
+                   ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)
+               ) as distanceInMeters,
+               d.via_type as viaType,
+               d.payment_type as paymentType,
+               d.toll_type as tollType
+        FROM dispatch d
+        WHERE d.active = true
+          AND d.status IN (:statuses)
+        ORDER BY distanceInMeters ASC
+        """, nativeQuery = true)
+    List<DispatchDistanceProjection> findDispatchesByDistanceAndStatus(
             @Param("lat") double lat,
             @Param("lon") double lon,
             @Param("statuses") List<String> statuses
