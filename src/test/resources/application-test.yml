@@ -1,13 +1,23 @@
 spring:
+  # ⚠️ 중요: 테스트 환경에서는 실제 DB에 연결되지 않도록 설정
+  # TestContainers를 사용하는 테스트는 DynamicPropertySource로 덮어씀
+  # 만약 실수로 TestContainers 없이 실행되면 에러가 발생하도록 의도적으로 잘못된 URL 설정
+  datasource:
+    url: jdbc:postgresql://localhost:9999/test_should_not_connect
+    username: test_user_should_not_exist
+    password: test_password
+    driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create-drop  # 테스트용 DB는 매번 새로 생성
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: false
     defer-datasource-initialization: true
+
   sql:
     init:
       mode: never
