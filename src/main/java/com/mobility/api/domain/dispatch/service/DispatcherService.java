@@ -1,6 +1,8 @@
 package com.mobility.api.domain.dispatch.service;
 
 import com.mobility.api.domain.dispatch.dto.DispatchDistanceProjection;
+import com.mobility.api.domain.dispatch.dto.response.CompletedDispatchDetailRes;
+import com.mobility.api.domain.dispatch.dto.response.CompletedDispatchListItemRes;
 import com.mobility.api.domain.dispatch.dto.response.CurrentDispatchDetailRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchCancelRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchDetailRes;
@@ -9,6 +11,8 @@ import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
 import com.mobility.api.domain.dispatch.dto.response.DispatchAssignCompleteRes;
+import com.mobility.api.domain.office.entity.Office;
+import com.mobility.api.domain.office.repository.OfficeRepository;
 import com.mobility.api.domain.transporter.DispatchStatus;
 import com.mobility.api.domain.transporter.entity.LocationHistory;
 import com.mobility.api.domain.transporter.entity.Transporter;
@@ -20,6 +24,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -32,6 +39,7 @@ public class DispatcherService {
     private final DispatchRepository dispatchRepository;
     private final TransporterRepository transporterRepository;
     private final LocationRepository locationRepository;
+    private final OfficeRepository officeRepository;
 
     @Transactional
     public DispatchAssignCompleteRes assignDispatch(Long dispatchId, Long transporterId) {
@@ -152,15 +160,16 @@ public class DispatcherService {
         double lon = latestLocation.getLocation().getX();
 
         // StatusType enum을 String으로 변환
-        // 빈 리스트면 null로 전달하여 PostgreSQL IN 절 에러 방지
-        List<String> statusStrings = null;
+        List<DispatchDistanceProjection> projections;
         if (statuses != null && !statuses.isEmpty()) {
-            statusStrings = statuses.stream()
+            List<String> statusStrings = statuses.stream()
                     .map(StatusType::name)
                     .collect(Collectors.toList());
+            projections = dispatchRepository.findDispatchesByDistanceAndStatus(lat, lon, statusStrings);
+        } else {
+            // 상태 필터 없이 전체 조회
+            projections = dispatchRepository.findDispatchesByDistance(lat, lon);
         }
-
-        List<DispatchDistanceProjection> projections = dispatchRepository.findDispatchesByDistance(lat, lon, statusStrings);
 
         // 4. Projection -> DTO 변환
         return projections.stream()
@@ -187,8 +196,93 @@ public class DispatcherService {
         Dispatch dispatch = dispatchRepository.findFirstByTransporterIdAndStatusOrderByAssignedAtDesc(transporterId, StatusType.ASSIGNED)
                 .orElseThrow(() -> new GlobalException(ResultCode.DISPATCH_NOT_ASSIGNED));
 
-        // 4. DTO 변환 및 반환
-        return CurrentDispatchDetailRes.from(dispatch);
+        // 4. 사무실 정보 조회 (사무실 전화번호를 가져오기 위함)
+        String officeTelNumber = null;
+        if (dispatch.getOfficeId() != null) {
+            Office office = officeRepository.findById(dispatch.getOfficeId())
+                    .orElse(null);
+            if (office != null) {
+                officeTelNumber = office.getOfficeTelNumber();
+            }
+        }
+
+        // 5. DTO 변환 및 반환
+        return CurrentDispatchDetailRes.from(dispatch, officeTelNumber);
+    }
+
+    /**
+     * 완료된 배차 목록 조회 (기간별)
+     * @param transporterId 기사 ID
+     * @param fromDate 시작일 (YYYY-MM-DD)
+     * @param toDate 종료일 (YYYY-MM-DD)
+     * @return 완료된 배차 목록 (assignedAt 최신순)
+     */
+    public List<CompletedDispatchListItemRes> getCompletedDispatchList(
+            Long transporterId,
+            LocalDate fromDate,
+            LocalDate toDate
+    ) {
+        // 1. 기사 정보 조회
+        Transporter transporter = transporterRepository.findById(transporterId)
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
+
+        // 2. LocalDate를 LocalDateTime으로 변환 (시작일 00:00:00 ~ 종료일 23:59:59)
+        LocalDateTime fromDateTime = fromDate.atStartOfDay();
+        LocalDateTime toDateTime = toDate.atTime(LocalTime.MAX);
+
+        // 3. 완료된 배차 조회
+        List<Dispatch> completedDispatches = dispatchRepository
+                .findCompletedDispatchesByTransporterIdAndDateRange(
+                        transporterId,
+                        fromDateTime,
+                        toDateTime
+                );
+
+        // 4. DTO 변환
+        return completedDispatches.stream()
+                .map(CompletedDispatchListItemRes::from)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 완료된 배차 상세 조회
+     * @param transporterId 기사 ID
+     * @param dispatchId 배차 ID
+     * @return 완료된 배차 상세 정보
+     */
+    public CompletedDispatchDetailRes getCompletedDispatchDetail(Long transporterId, Long dispatchId) {
+        // 1. 기사 정보 조회
+        Transporter transporter = transporterRepository.findById(transporterId)
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_USER));
+
+        // 2. 배차 정보 조회 (Transporter와 Fetch Join)
+        Dispatch dispatch = dispatchRepository.findByIdWithTransporter(dispatchId)
+                .orElseThrow(() -> new GlobalException(ResultCode.NOT_FOUND_DISPATCH));
+
+        // 3. 해당 배차가 해당 기사의 배차인지 확인
+        if (dispatch.getTransporter() == null || !dispatch.getTransporter().getId().equals(transporterId)) {
+            throw new GlobalException(ResultCode.FORBIDDEN);
+        }
+
+        // 4. 완료 상태인지 확인
+        if (dispatch.getStatus() != StatusType.COMPLETED) {
+            throw new GlobalException(ResultCode.INVALID_INPUT);
+        }
+
+        // 5. 사무실 정보 조회
+        String officeName = null;
+        String officeTelNumber = null;
+        if (dispatch.getOfficeId() != null) {
+            Office office = officeRepository.findById(dispatch.getOfficeId())
+                    .orElse(null);
+            if (office != null) {
+                officeName = office.getOfficeName();
+                officeTelNumber = office.getOfficeTelNumber();
+            }
+        }
+
+        // 6. DTO 변환 및 반환
+        return CompletedDispatchDetailRes.from(dispatch, officeName, officeTelNumber);
     }
 
     /**
