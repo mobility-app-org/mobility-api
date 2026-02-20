@@ -1,6 +1,4 @@
 spring:
-  # ⚠️ 중요: 통합 테스트는 TestContainers 사용 권장
-  # TestContainers 없는 테스트는 로컬 DB 사용 (테스트 데이터만 사용할 것)
   jpa:
     hibernate:
       ddl-auto: create-drop
