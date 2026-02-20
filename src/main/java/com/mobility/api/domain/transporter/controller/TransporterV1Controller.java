@@ -1,5 +1,7 @@
 package com.mobility.api.domain.transporter.controller;
 
+import com.mobility.api.domain.dispatch.dto.response.CompletedDispatchDetailRes;
+import com.mobility.api.domain.dispatch.dto.response.CompletedDispatchListItemRes;
 import com.mobility.api.domain.dispatch.dto.response.CurrentDispatchDetailRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchCancelRes;
 import com.mobility.api.domain.dispatch.dto.response.DispatchAssignCompleteRes;
@@ -19,8 +21,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -180,5 +184,104 @@ public class TransporterV1Controller {
 
         List<DispatchListItemRes> dispatchList = dispatcherService.getDispatchListByDistance(transporterId, statusTypes);
         return CommonResponse.success(dispatchList);
+    }
+
+    /**
+     * 완료된 배차 목록 조회 (기간별)
+     */
+    @Operation(
+            summary = "완료된 배차 목록 조회 (기간별)",
+            description = """
+                    현재 로그인한 기사가 완료한 배차 목록을 기간별로 조회합니다.
+
+                    - fromDate ~ toDate 기간 동안 완료(COMPLETED)된 배차만 조회합니다.
+                    - 배차 할당 시간(assignedAt) 기준 최신순으로 정렬됩니다.
+                    - 날짜 형식: YYYY-MM-DD
+
+                    예시: /api/v1/transporter/completed-dispatches?fromDate=2025-11-01&toDate=2025-11-30
+                    """
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "완료된 배차 목록 조회 성공"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "기사 정보를 찾을 수 없음"
+            )
+    })
+    @GetMapping("/completed-dispatches")
+    public CommonResponse<List<CompletedDispatchListItemRes>> getCompletedDispatches(
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true)
+            @CurrentUser Transporter transporter,
+            @io.swagger.v3.oas.annotations.Parameter(
+                    description = "조회 시작일 (YYYY-MM-DD)",
+                    example = "2025-11-01",
+                    required = true
+            )
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
+            @io.swagger.v3.oas.annotations.Parameter(
+                    description = "조회 종료일 (YYYY-MM-DD)",
+                    example = "2025-11-30",
+                    required = true
+            )
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate
+    ) {
+        Long transporterId = getValidatedTransporterId(transporter);
+
+        List<CompletedDispatchListItemRes> completedDispatches =
+                dispatcherService.getCompletedDispatchList(transporterId, fromDate, toDate);
+
+        return CommonResponse.success(completedDispatches);
+    }
+
+    /**
+     * 완료된 배차 상세 조회
+     */
+    @Operation(
+            summary = "완료된 배차 상세 조회",
+            description = """
+                    완료된 배차의 상세 정보를 조회합니다.
+
+                    - 현재 로그인한 기사가 완료한 배차만 조회 가능합니다.
+                    - 다른 기사의 배차 또는 완료되지 않은 배차는 조회할 수 없습니다.
+                    - 사무실 정보(이름, 전화번호), 배차 상세 정보, 태그 목록을 포함합니다.
+                    - 태그: 결제 방식(현금, 후불, 완후), 톨게이트 방식(톨포, 톨별, 하이패스)
+
+                    예시: /api/v1/transporter/completed-dispatches/1
+                    """
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "완료된 배차 상세 조회 성공"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "다른 기사의 배차에 대한 권한 없음"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "배차 정보를 찾을 수 없음"
+            )
+    })
+    @GetMapping("/completed-dispatches/{dispatchId}")
+    public CommonResponse<CompletedDispatchDetailRes> getCompletedDispatchDetail(
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true)
+            @CurrentUser Transporter transporter,
+            @io.swagger.v3.oas.annotations.Parameter(
+                    description = "배차 ID",
+                    example = "1",
+                    required = true
+            )
+            @PathVariable Long dispatchId
+    ) {
+        Long transporterId = getValidatedTransporterId(transporter);
+
+        CompletedDispatchDetailRes completedDispatchDetail =
+                dispatcherService.getCompletedDispatchDetail(transporterId, dispatchId);
+
+        return CommonResponse.success(completedDispatchDetail);
     }
 }

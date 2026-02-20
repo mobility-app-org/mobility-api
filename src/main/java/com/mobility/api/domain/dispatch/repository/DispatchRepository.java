@@ -115,4 +115,25 @@ public interface DispatchRepository extends JpaRepository<Dispatch, Long>,
             @Param("transporterId") Long transporterId,
             @Param("status") StatusType status
     );
+
+    /**
+     * 특정 기사의 기간별 완료된 배차 조회
+     * @param transporterId 기사 ID
+     * @param fromDate 시작일 (00:00:00)
+     * @param toDate 종료일 (23:59:59)
+     * @return 완료된 배차 리스트 (assignedAt 최신순)
+     */
+    @Query("""
+            SELECT d FROM Dispatch d
+            WHERE d.transporter.id = :transporterId
+            AND d.status = 'COMPLETED'
+            AND d.completedAt >= :fromDate
+            AND d.completedAt <= :toDate
+            ORDER BY d.assignedAt DESC
+            """)
+    List<Dispatch> findCompletedDispatchesByTransporterIdAndDateRange(
+            @Param("transporterId") Long transporterId,
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDate") java.time.LocalDateTime toDate
+    );
 }
