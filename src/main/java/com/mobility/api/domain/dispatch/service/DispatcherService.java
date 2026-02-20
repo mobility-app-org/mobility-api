@@ -9,6 +9,8 @@ import com.mobility.api.domain.dispatch.entity.Dispatch;
 import com.mobility.api.domain.dispatch.enums.StatusType;
 import com.mobility.api.domain.dispatch.repository.DispatchRepository;
 import com.mobility.api.domain.dispatch.dto.response.DispatchAssignCompleteRes;
+import com.mobility.api.domain.office.entity.Office;
+import com.mobility.api.domain.office.repository.OfficeRepository;
 import com.mobility.api.domain.transporter.DispatchStatus;
 import com.mobility.api.domain.transporter.entity.LocationHistory;
 import com.mobility.api.domain.transporter.entity.Transporter;
@@ -32,6 +34,7 @@ public class DispatcherService {
     private final DispatchRepository dispatchRepository;
     private final TransporterRepository transporterRepository;
     private final LocationRepository locationRepository;
+    private final OfficeRepository officeRepository;
 
     @Transactional
     public DispatchAssignCompleteRes assignDispatch(Long dispatchId, Long transporterId) {
@@ -187,8 +190,18 @@ public class DispatcherService {
         Dispatch dispatch = dispatchRepository.findFirstByTransporterIdAndStatusOrderByAssignedAtDesc(transporterId, StatusType.ASSIGNED)
                 .orElseThrow(() -> new GlobalException(ResultCode.DISPATCH_NOT_ASSIGNED));
 
-        // 4. DTO 변환 및 반환
-        return CurrentDispatchDetailRes.from(dispatch);
+        // 4. 사무실 정보 조회 (사무실 전화번호를 가져오기 위함)
+        String officeTelNumber = null;
+        if (dispatch.getOfficeId() != null) {
+            Office office = officeRepository.findById(dispatch.getOfficeId())
+                    .orElse(null);
+            if (office != null) {
+                officeTelNumber = office.getOfficeTelNumber();
+            }
+        }
+
+        // 5. DTO 변환 및 반환
+        return CurrentDispatchDetailRes.from(dispatch, officeTelNumber);
     }
 
     /**

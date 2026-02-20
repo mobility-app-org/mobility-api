@@ -53,6 +53,9 @@ public record CurrentDispatchDetailRes(
         @Schema(description = "사무실 ID", example = "1")
         Long officeId,
 
+        @Schema(description = "사무실 전화번호", example = "02-1234-5678")
+        String officeTelNumber,
+
         @Schema(description = "생성일시", example = "2024-01-15T10:00:00")
         LocalDateTime createdAt,
 
@@ -65,9 +68,10 @@ public record CurrentDispatchDetailRes(
     /**
      * Entity -> DTO 변환 메서드
      * @param dispatch 배차 엔티티
+     * @param officeTelNumber 사무실 전화번호
      * @return CurrentDispatchDetailRes
      */
-    public static CurrentDispatchDetailRes from(Dispatch dispatch) {
+    public static CurrentDispatchDetailRes from(Dispatch dispatch, String officeTelNumber) {
         return CurrentDispatchDetailRes.builder()
                 .id(dispatch.getId())
                 .status(dispatch.getStatus())
@@ -81,6 +85,7 @@ public record CurrentDispatchDetailRes(
                 .paymentMethod(dispatch.getPaymentType())
                 .tollType(dispatch.getTollType())
                 .officeId(dispatch.getOfficeId())
+                .officeTelNumber(officeTelNumber)
                 .createdAt(dispatch.getCreatedAt())
                 .updatedAt(dispatch.getUpdatedAt())
                 .assignedAt(dispatch.getAssignedAt())

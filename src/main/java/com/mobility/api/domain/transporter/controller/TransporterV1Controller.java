@@ -99,6 +99,7 @@ public class TransporterV1Controller {
                     - 기사의 dispatchStatus가 DISPATCH 상태일 때만 조회 가능합니다.
                     - EMPTY 상태(배차중인 오더가 없음)인 경우 에러가 반환됩니다.
                     - ASSIGNED 상태의 배차 정보를 반환합니다.
+                    - 응답에 배차를 생성한 사무실(상황실)의 전화번호(officeTelNumber)가 포함됩니다.
                     """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
