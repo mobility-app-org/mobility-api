@@ -40,6 +40,17 @@ out/
 /src/main/resources/*.properties
 /src/test/resources/*.properties
 
+### Environment variables ###
 .env
 
+### Logs ###
+logs/
+*.log
+
+### K6 test results ###
+load-tests/load-test-results.json
+load-tests/results.json
+
 CLAUDE.md
+
+docs/

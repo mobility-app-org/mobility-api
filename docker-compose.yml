@@ -3,33 +3,130 @@ version: '3.8'
 services:
   # 1. API 서버 (Spring Boot) 서비스
   api-server:
-    build: . # 현재 디렉토리의 Dockerfile을 사용해 이미지를 빌드
+    build: .
     container_name: mobility-api
     ports:
-      - "8080:8080" # VM(호스트)의 8080 포트를 컨테이너 8080으로 연결
+      - "8080:8080"
     environment:
-      # 🚨 API 서버가 도커 내부의 'db' 서비스에 접속하도록 설정
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
-      - SPRING_PROFILES_ACTIVE=docker # Dockerfile의 ENV와 일치
+      - SPRING_PROFILES_ACTIVE=docker
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ACCESS_TOKEN_VALIDITY_IN_SECONDS=${JWT_ACCESS_TOKEN_VALIDITY_IN_SECONDS}
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5000
     depends_on:
       - db
-#      db:
-#        condition: service_healthy
+      - logstash
+    networks:
+      - mobility-network
+    volumes:
+      - ./logs:/logs
 
   # 2. PostgreSQL 서비스
   db:
     image: postgis/postgis:15-3.4
     container_name: postgres-mobility
-
     ports:
       - "5432:5432"
-
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - TZ=Asia/Seoul
+    networks:
+      - mobility-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  # 3. Elasticsearch (로그 저장소)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    networks:
+      - mobility-network
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+
+  # 4. Logstash (로그 수집 및 전송)
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: logstash
+    ports:
+      - "5000:5000"
+      - "9600:9600"
+    environment:
+      - "LS_JAVA_OPTS=-Xms256m -Xmx256m"
+    networks:
+      - mobility-network
+    volumes:
+      - ./monitoring/logstash/pipeline:/usr/share/logstash/pipeline
+      - ./monitoring/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+    depends_on:
+      - elasticsearch
+
+  # 5. Kibana (로그 시각화)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - mobility-network
+    depends_on:
+      - elasticsearch
+
+  # 6. Prometheus (메트릭 수집)
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - mobility-network
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+
+  # 7. Grafana (메트릭 시각화)
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    networks:
+      - mobility-network
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+
+networks:
+  mobility-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  elasticsearch-data:
+  prometheus-data:
+  grafana-data:

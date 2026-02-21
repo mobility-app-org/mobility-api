@@ -9,3 +9,38 @@ spring:
         ddl-auto: update # 변경된 부분만 반영 (테이블 없으면 생성)
         # Hibernate 6.x 이상 사용 시 권장 설정
 #        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
+
+  # Application name for monitoring
+  application:
+    name: mobility-api
+
+# Actuator & Prometheus 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers,httptrace
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+    tags:
+      application: ${spring.application.name}
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
