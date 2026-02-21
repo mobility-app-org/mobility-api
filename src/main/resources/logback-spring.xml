@@ -108,6 +108,7 @@
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="ASYNC_FILE"/>
             <appender-ref ref="ASYNC_ERROR_FILE"/>
+            <appender-ref ref="ASYNC_LOGSTASH"/> <!-- 로컬 환경에서만 ELK 사용 -->
         </root>
 
         <!-- 애플리케이션 로그는 DEBUG 레벨 -->
@@ -123,7 +124,7 @@
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="ASYNC_FILE"/>
             <appender-ref ref="ASYNC_ERROR_FILE"/>
-            <appender-ref ref="ASYNC_LOGSTASH"/>
+            <!-- LOGSTASH 제거: 배포 서버에는 ELK 없음 -->
         </root>
 
         <!-- 애플리케이션 로그 -->
