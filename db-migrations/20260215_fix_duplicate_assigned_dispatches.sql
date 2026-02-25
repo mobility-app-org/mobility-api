@@ -123,7 +123,7 @@ BEGIN
         AND d.status = 'ASSIGNED'
         AND d.active = true
     WHERE t.dispatch_status = 'DISPATCH'
-      AND d.dispatch_id IS NULL;
+      AND d.id IS NULL;
 
     IF inconsistent_count > 0 THEN
         RAISE NOTICE 'Found % transporters with inconsistent dispatch_status', inconsistent_count;
