@@ -17,8 +17,8 @@ SELECT
     t.name as transporter_name,
     t.phone,
     t.dispatch_status,
-    COUNT(d.dispatch_id) as assigned_count,
-    STRING_AGG(d.dispatch_id::text, ', ' ORDER BY d.assigned_at DESC) as dispatch_ids,
+    COUNT(d.id) as assigned_count,
+    STRING_AGG(d.id::text, ', ' ORDER BY d.assigned_at DESC) as dispatch_ids,
     STRING_AGG(d.assigned_at::text, ', ' ORDER BY d.assigned_at DESC) as assigned_times,
     STRING_AGG(d.charge::text, ', ' ORDER BY d.assigned_at DESC) as charges
 FROM dispatch d
@@ -27,8 +27,8 @@ WHERE d.status = 'ASSIGNED'
   AND d.active = true
   AND d.transporter_id IS NOT NULL
 GROUP BY t.transporter_id, t.name, t.phone, t.dispatch_status
-HAVING COUNT(d.dispatch_id) > 1
-ORDER BY COUNT(d.dispatch_id) DESC, t.transporter_id;
+HAVING COUNT(d.id) > 1
+ORDER BY COUNT(d.id) DESC, t.transporter_id;
 
 -- ================================================================
 -- Check 2: 중복 배차 통계
@@ -64,8 +64,9 @@ SELECT
     '1. Has ASSIGNED dispatch but status is EMPTY' as inconsistency_type,
     t.transporter_id,
     t.name,
+
     t.dispatch_status,
-    COUNT(d.dispatch_id) as assigned_dispatch_count
+    COUNT(d.id) as assigned_dispatch_count
 FROM transporters t
 JOIN dispatch d ON t.transporter_id = d.transporter_id
 WHERE d.status = 'ASSIGNED'
@@ -87,7 +88,7 @@ LEFT JOIN dispatch d ON t.transporter_id = d.transporter_id
     AND d.status = 'ASSIGNED'
     AND d.active = true
 WHERE t.dispatch_status = 'DISPATCH'
-  AND d.dispatch_id IS NULL;
+  AND d.id IS NULL;
 
 -- ================================================================
 -- Check 4: 중복 배차 상세 정보 (샘플 5건)
@@ -96,7 +97,7 @@ SELECT
     '=== Sample Duplicate Dispatches (Top 5) ===' as check_title;
 
 SELECT
-    d.dispatch_id,
+    d.id,
     d.transporter_id,
     t.name as transporter_name,
     d.status,
