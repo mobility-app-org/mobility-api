@@ -238,9 +238,20 @@ public class DispatcherService {
                         toDateTime
                 );
 
-        // 4. DTO 변환
+        // 4. DTO 변환 (사무실 정보 조회 포함)
         return completedDispatches.stream()
-                .map(CompletedDispatchListItemRes::from)
+                .map(dispatch -> {
+                    String officeName = null;
+                    String officeTelNumber = null;
+                    if (dispatch.getOfficeId() != null) {
+                        Office office = officeRepository.findById(dispatch.getOfficeId()).orElse(null);
+                        if (office != null) {
+                            officeName = office.getOfficeName();
+                            officeTelNumber = office.getOfficeTelNumber();
+                        }
+                    }
+                    return CompletedDispatchListItemRes.from(dispatch, officeName, officeTelNumber);
+                })
                 .collect(Collectors.toList());
     }
 
