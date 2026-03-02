@@ -53,6 +53,9 @@ public record CurrentDispatchDetailRes(
         @Schema(description = "사무실 ID", example = "1")
         Long officeId,
 
+        @Schema(description = "사무실 이름", example = "(주)대리GO")
+        String officeName,
+
         @Schema(description = "사무실 전화번호", example = "02-1234-5678")
         String officeTelNumber,
 
@@ -71,7 +74,7 @@ public record CurrentDispatchDetailRes(
      * @param officeTelNumber 사무실 전화번호
      * @return CurrentDispatchDetailRes
      */
-    public static CurrentDispatchDetailRes from(Dispatch dispatch, String officeTelNumber) {
+    public static CurrentDispatchDetailRes from(Dispatch dispatch, String officeName, String officeTelNumber) {
         return CurrentDispatchDetailRes.builder()
                 .id(dispatch.getId())
                 .status(dispatch.getStatus())
@@ -85,6 +88,7 @@ public record CurrentDispatchDetailRes(
                 .paymentMethod(dispatch.getPaymentType())
                 .tollType(dispatch.getTollType())
                 .officeId(dispatch.getOfficeId())
+                .officeName(officeName)
                 .officeTelNumber(officeTelNumber)
                 .createdAt(dispatch.getCreatedAt())
                 .updatedAt(dispatch.getUpdatedAt())

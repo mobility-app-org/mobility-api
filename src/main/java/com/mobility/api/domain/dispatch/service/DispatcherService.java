@@ -197,17 +197,19 @@ public class DispatcherService {
                 .orElseThrow(() -> new GlobalException(ResultCode.DISPATCH_NOT_ASSIGNED));
 
         // 4. 사무실 정보 조회 (사무실 전화번호를 가져오기 위함)
+        String officeName = null;
         String officeTelNumber = null;
         if (dispatch.getOfficeId() != null) {
             Office office = officeRepository.findById(dispatch.getOfficeId())
                     .orElse(null);
             if (office != null) {
+                officeName = office.getOfficeName();
                 officeTelNumber = office.getOfficeTelNumber();
             }
         }
 
         // 5. DTO 변환 및 반환
-        return CurrentDispatchDetailRes.from(dispatch, officeTelNumber);
+        return CurrentDispatchDetailRes.from(dispatch, officeName, officeTelNumber);
     }
 
     /**
@@ -238,9 +240,20 @@ public class DispatcherService {
                         toDateTime
                 );
 
-        // 4. DTO 변환
+        // 4. DTO 변환 (사무실 정보 조회 포함)
         return completedDispatches.stream()
-                .map(CompletedDispatchListItemRes::from)
+                .map(dispatch -> {
+                    String officeName = null;
+                    String officeTelNumber = null;
+                    if (dispatch.getOfficeId() != null) {
+                        Office office = officeRepository.findById(dispatch.getOfficeId()).orElse(null);
+                        if (office != null) {
+                            officeName = office.getOfficeName();
+                            officeTelNumber = office.getOfficeTelNumber();
+                        }
+                    }
+                    return CompletedDispatchListItemRes.from(dispatch, officeName, officeTelNumber);
+                })
                 .collect(Collectors.toList());
     }
 
